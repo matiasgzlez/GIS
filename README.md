@@ -15,25 +15,7 @@ App para practicar el primer parcial de **Sistemas de Información Geográfica**
 
 Las 14 preguntas que salen de lo visto en clase o de la presentación, y no de los PDFs, llevan la etiqueta **"Apunte de clase"**.
 
-## Cómo correrla
-
-Requiere Node.js 18.18 o superior.
-
-```bash
-npm install
-npm run dev
-```
-
-Abrí http://localhost:3000. Para verla desde el celu, entrá desde la misma red a `http://<IP-de-tu-compu>:3000`.
-
-Para una versión de producción:
-
-```bash
-npm run build
-npm start
-```
-
-### Atajos de teclado
+## Atajos de teclado
 
 | Tecla | Acción |
 | --- | --- |
@@ -105,9 +87,9 @@ El script lee la `fuente` de cada pregunta (`diapositiva 13`, `diapositivas 20-2
 
 ## Comentarios
 
-Los comentarios se guardan en el servidor, en `data/comentarios.json`, que no se sube al repositorio. Los ve cualquiera que use la misma instancia de la app: si la corrés en tu compu, los ves también desde el celu en la misma red.
+Los comentarios se guardan en el servidor, en `data/comentarios.json`, que no se sube al repositorio.
 
-En plataformas sin disco persistente (por ejemplo Vercel) ese archivo se pierde entre despliegues. Para publicarla ahí con comentarios compartidos habría que guardarlos en una base de datos.
+En Vercel el sistema de archivos no es persistente, así que ese archivo no sirve: para tener comentarios en la versión publicada hay que guardarlos en una base de datos.
 
 ## Tecnologías
 
