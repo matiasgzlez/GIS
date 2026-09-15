@@ -108,12 +108,20 @@ def main():
             SALIDA_IMG / f"{d}-{n}.jpg", jpg_quality=78
         )
 
+    # Una línea por pregunta: compacto y sin bloques repetidos
+    def fila(clave, diapos):
+        items = ", ".join(
+            f"{{ src: {json.dumps(d['src'])}, etiqueta: {json.dumps(d['etiqueta'], ensure_ascii=False)} }}"
+            for d in diapos
+        )
+        return f"  {json.dumps(clave, ensure_ascii=False)}: [{items}],"
+
     SALIDA_TS.write_text(
         "/** Diapositivas / páginas de los PDFs de cada pregunta (generado desde `fuente`). */\n"
         "export type Diapo = { src: string; etiqueta: string };\n\n"
-        "export const DIAPOS: Record<string, Diapo[]> = "
-        + json.dumps(mapa, ensure_ascii=False, indent=2)
-        + ";\n",
+        "export const DIAPOS: Record<string, Diapo[]> = {\n"
+        + "\n".join(fila(k, v) for k, v in mapa.items())
+        + "\n};\n",
         encoding="utf-8",
     )
 
