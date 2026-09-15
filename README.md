@@ -4,12 +4,12 @@ App para practicar el primer parcial de **Sistemas de Información Geográfica**
 
 ## Qué tiene
 
-- **155 preguntas** de las Unidades 1, 2 y 3 (U1: 32, U2: 71, U3: 52), en orden aleatorio en cada intento.
-- **Tres tipos de pregunta:** una sola correcta, selección múltiple (cuenta como correcta solo si marcás exactamente la combinación) y verdadero o falso.
+- **213 preguntas** de las Unidades 1, 2 y 3 (U1: 38, U2: 103, U3: 72), en orden fijo y numeradas (Nº 1 a 38 de la Unidad 1, después la 2 y la 3), así una pregunta se puede nombrar por su número. Las opciones también tienen un orden fijo por pregunta.
+- **Cuestionario global o por unidad:** desde el inicio se elige practicar todas las unidades o solo la 1, la 2 o la 3 (la 4 está marcada como próximamente).
+- **Todas las preguntas se responden marcando casillas y confirmando**, aunque tengan una sola respuesta correcta: la app no avisa cuántas hay que marcar. Cuenta como correcta solo si marcás exactamente la combinación. Hay preguntas de una correcta, de varias y de verdadero o falso.
 - **17 ejercicios prácticos:** escalas, coordenadas y áreas en raster, orden BSQ/BIL/BIP, faja Gauss-Krüger, zona UTM, semieje del elipsoide.
 - **Figuras de los PDFs** en las preguntas que las necesitan: imagen a la izquierda, pregunta y opciones a la derecha. Se amplían con un toque.
 - **Teoría en cada pregunta:** un botón abre una ventana a pantalla completa con el resumen del tema, los términos técnicos definidos y las diapositivas del PDF de donde sale la pregunta.
-- **Comentarios por pregunta:** notas como "pregunta importante" o "revisar la teoría de topología", con atajos rápidos.
 - **Resultado final** con el porcentaje, el desglose por unidad, la lista de preguntas para repasar y la opción de reintentar solo las que fallaste.
 - Pensada para la compu (cada pregunta entra en una pantalla sin scroll) y usable desde el celu.
 
@@ -23,7 +23,6 @@ Las 14 preguntas que salen de lo visto en clase o de la presentación, y no de l
 | `Enter` | Confirmar (selección múltiple) o pasar a la siguiente |
 | `←` | Volver a la pregunta anterior |
 | `T` | Abrir la teoría |
-| `C` | Abrir los comentarios |
 | `Esc` | Cerrar el zoom o la ventana abierta |
 
 ## Estructura
@@ -32,10 +31,8 @@ Las 14 preguntas que salen de lo visto en clase o de la presentación, y no de l
 src/
   app/
     page.tsx                  Página principal
-    api/comentarios/route.ts  API de comentarios (GET, POST, DELETE)
   components/
     Quiz.tsx                  Inicio, preguntas, resultado y ventanas
-    Comentarios.tsx           Panel de comentarios de una pregunta
   lib/
     preguntas.ts              Banco de preguntas
     teoria.ts                 Teoría por tema y glosario de términos
@@ -84,12 +81,6 @@ El script lee la `fuente` de cada pregunta (`diapositiva 13`, `diapositivas 20-2
 - `Unidad 2-Parte1-2026-V2.pdf`
 - `Unidad 2- parte2.pdf`
 - `Unidad 3.pdf`
-
-## Comentarios
-
-Los comentarios se guardan en el servidor, en `data/comentarios.json`, que no se sube al repositorio.
-
-En Vercel el sistema de archivos no es persistente, así que ese archivo no sirve: para tener comentarios en la versión publicada hay que guardarlos en una base de datos.
 
 ## Tecnologías
 

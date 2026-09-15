@@ -1335,5 +1335,489 @@ export const DIAPOS: Record<string, Diapo[]> = {
       "src": "/slides/u3-30.jpg",
       "etiqueta": "U3 · Diapositiva 30"
     }
+  ],
+  "r-sig-generico": [
+    {
+      "src": "/slides/u1-1.jpg",
+      "etiqueta": "Pág. 1"
+    }
+  ],
+  "r-etapa-tercera": [
+    {
+      "src": "/slides/u1-4.jpg",
+      "etiqueta": "Pág. 4"
+    }
+  ],
+  "r-etapa-segunda": [
+    {
+      "src": "/slides/u1-4.jpg",
+      "etiqueta": "Pág. 4"
+    }
+  ],
+  "r-hardware-rango": [
+    {
+      "src": "/slides/u1-13.jpg",
+      "etiqueta": "Pág. 13"
+    }
+  ],
+  "r-usuarios": [
+    {
+      "src": "/slides/u1-14.jpg",
+      "etiqueta": "Pág. 14"
+    }
+  ],
+  "r-datos-compromiso": [
+    {
+      "src": "/slides/u1-13.jpg",
+      "etiqueta": "Pág. 13"
+    }
+  ],
+  "r-diferenciador": [
+    {
+      "src": "/slides/u2a-3.jpg",
+      "etiqueta": "U2 · Diapositiva 3"
+    }
+  ],
+  "r-parcela": [
+    {
+      "src": "/slides/u2a-3.jpg",
+      "etiqueta": "U2 · Diapositiva 3"
+    },
+    {
+      "src": "/slides/u2a-5.jpg",
+      "etiqueta": "U2 · Diapositiva 5"
+    }
+  ],
+  "r-compleja": [
+    {
+      "src": "/slides/u2a-6.jpg",
+      "etiqueta": "U2 · Diapositiva 6"
+    },
+    {
+      "src": "/slides/u2a-7.jpg",
+      "etiqueta": "U2 · Diapositiva 7"
+    },
+    {
+      "src": "/slides/u2a-8.jpg",
+      "etiqueta": "U2 · Diapositiva 8"
+    },
+    {
+      "src": "/slides/u2a-9.jpg",
+      "etiqueta": "U2 · Diapositiva 9"
+    },
+    {
+      "src": "/slides/u2a-10.jpg",
+      "etiqueta": "U2 · Diapositiva 10"
+    }
+  ],
+  "r-categorias": [
+    {
+      "src": "/slides/u2a-10.jpg",
+      "etiqueta": "U2 · Diapositiva 10"
+    }
+  ],
+  "r-menor-abstraccion": [
+    {
+      "src": "/slides/u2a-18.jpg",
+      "etiqueta": "U2 · Diapositiva 18"
+    }
+  ],
+  "r-mayor-abstraccion": [
+    {
+      "src": "/slides/u2a-18.jpg",
+      "etiqueta": "U2 · Diapositiva 18"
+    }
+  ],
+  "r-def-representacion": [
+    {
+      "src": "/slides/u2a-18.jpg",
+      "etiqueta": "U2 · Diapositiva 18"
+    }
+  ],
+  "r-def-almacenamiento": [
+    {
+      "src": "/slides/u2a-18.jpg",
+      "etiqueta": "U2 · Diapositiva 18"
+    },
+    {
+      "src": "/slides/u2b-3.jpg",
+      "etiqueta": "U2 (parte 2) · Diapositiva 3"
+    }
+  ],
+  "r-paradigmas": [
+    {
+      "src": "/slides/u2a-19.jpg",
+      "etiqueta": "U2 · Diapositiva 19"
+    }
+  ],
+  "r-termino-vectorial": [
+    {
+      "src": "/slides/u2a-23.jpg",
+      "etiqueta": "U2 · Diapositiva 23"
+    }
+  ],
+  "r-origen": [
+    {
+      "src": "/slides/u2a-24.jpg",
+      "etiqueta": "U2 · Diapositiva 24"
+    }
+  ],
+  "r-nominal": [
+    {
+      "src": "/slides/u2a-25.jpg",
+      "etiqueta": "U2 · Diapositiva 25"
+    }
+  ],
+  "r-elev-malla": [
+    {
+      "src": "/slides/u2a-27.jpg",
+      "etiqueta": "U2 · Diapositiva 27"
+    },
+    {
+      "src": "/slides/u2a-41.jpg",
+      "etiqueta": "U2 · Diapositiva 41"
+    }
+  ],
+  "r-red-vector": [
+    {
+      "src": "/slides/u2a-28.jpg",
+      "etiqueta": "U2 · Diapositiva 28"
+    }
+  ],
+  "r-imagenes": [
+    {
+      "src": "/slides/u2a-42.jpg",
+      "etiqueta": "U2 · Diapositiva 42"
+    }
+  ],
+  "r-forma-primitiva": [
+    {
+      "src": "/slides/u2a-44.jpg",
+      "etiqueta": "U2 · Diapositiva 44"
+    },
+    {
+      "src": "/slides/u2a-46.jpg",
+      "etiqueta": "U2 · Diapositiva 46"
+    }
+  ],
+  "r-raster-sin-bd": [
+    {
+      "src": "/slides/u2a-48.jpg",
+      "etiqueta": "U2 · Diapositiva 48"
+    }
+  ],
+  "r-analisis-espacial": [
+    {
+      "src": "/slides/u2a-49.jpg",
+      "etiqueta": "U2 · Diapositiva 49"
+    }
+  ],
+  "r-topo-reglas": [
+    {
+      "src": "/slides/u2a-51.jpg",
+      "etiqueta": "U2 · Diapositiva 51"
+    }
+  ],
+  "r-cartografica": [
+    {
+      "src": "/slides/u2a-52.jpg",
+      "etiqueta": "U2 · Diapositiva 52"
+    }
+  ],
+  "r-topo-calidad": [
+    {
+      "src": "/slides/u2a-57.jpg",
+      "etiqueta": "U2 · Diapositiva 57"
+    },
+    {
+      "src": "/slides/u2a-58.jpg",
+      "etiqueta": "U2 · Diapositiva 58"
+    }
+  ],
+  "r-dime-arconodo": [
+    {
+      "src": "/slides/u2a-66.jpg",
+      "etiqueta": "U2 · Diapositiva 66"
+    },
+    {
+      "src": "/slides/u2a-67.jpg",
+      "etiqueta": "U2 · Diapositiva 67"
+    },
+    {
+      "src": "/slides/u2a-68.jpg",
+      "etiqueta": "U2 · Diapositiva 68"
+    },
+    {
+      "src": "/slides/u2a-69.jpg",
+      "etiqueta": "U2 · Diapositiva 69"
+    }
+  ],
+  "r-conectividad": [
+    {
+      "src": "/slides/u2a-70.jpg",
+      "etiqueta": "U2 · Diapositiva 70"
+    }
+  ],
+  "r-adyacencia": [
+    {
+      "src": "/slides/u2a-70.jpg",
+      "etiqueta": "U2 · Diapositiva 70"
+    }
+  ],
+  "r-inclusion": [
+    {
+      "src": "/slides/u2a-70.jpg",
+      "etiqueta": "U2 · Diapositiva 70"
+    },
+    {
+      "src": "/slides/u2a-71.jpg",
+      "etiqueta": "U2 · Diapositiva 71"
+    }
+  ],
+  "r-formatos-vector": [
+    {
+      "src": "/slides/u2b-15.jpg",
+      "etiqueta": "U2 (parte 2) · Diapositiva 15"
+    },
+    {
+      "src": "/slides/u2b-17.jpg",
+      "etiqueta": "U2 (parte 2) · Diapositiva 17"
+    }
+  ],
+  "r-formatos-raster": [
+    {
+      "src": "/slides/u2b-15.jpg",
+      "etiqueta": "U2 (parte 2) · Diapositiva 15"
+    },
+    {
+      "src": "/slides/u2b-17.jpg",
+      "etiqueta": "U2 (parte 2) · Diapositiva 17"
+    }
+  ],
+  "r-gml": [
+    {
+      "src": "/slides/u2b-21.jpg",
+      "etiqueta": "U2 (parte 2) · Diapositiva 21"
+    },
+    {
+      "src": "/slides/u2b-22.jpg",
+      "etiqueta": "U2 (parte 2) · Diapositiva 22"
+    }
+  ],
+  "r-kml": [
+    {
+      "src": "/slides/u2b-23.jpg",
+      "etiqueta": "U2 (parte 2) · Diapositiva 23"
+    },
+    {
+      "src": "/slides/u2b-24.jpg",
+      "etiqueta": "U2 (parte 2) · Diapositiva 24"
+    }
+  ],
+  "r-tablas-gd": [
+    {
+      "src": "/slides/u2b-29.jpg",
+      "etiqueta": "U2 (parte 2) · Diapositiva 29"
+    }
+  ],
+  "r-postgis": [
+    {
+      "src": "/slides/u2b-30.jpg",
+      "etiqueta": "U2 (parte 2) · Diapositiva 30"
+    },
+    {
+      "src": "/slides/u2b-31.jpg",
+      "etiqueta": "U2 (parte 2) · Diapositiva 31"
+    },
+    {
+      "src": "/slides/u2b-32.jpg",
+      "etiqueta": "U2 (parte 2) · Diapositiva 32"
+    },
+    {
+      "src": "/slides/u2b-33.jpg",
+      "etiqueta": "U2 (parte 2) · Diapositiva 33"
+    },
+    {
+      "src": "/slides/u2b-34.jpg",
+      "etiqueta": "U2 (parte 2) · Diapositiva 34"
+    }
+  ],
+  "r-sfs": [
+    {
+      "src": "/slides/u2b-33.jpg",
+      "etiqueta": "U2 (parte 2) · Diapositiva 33"
+    },
+    {
+      "src": "/slides/u2b-34.jpg",
+      "etiqueta": "U2 (parte 2) · Diapositiva 34"
+    }
+  ],
+  "r-edicion": [
+    {
+      "src": "/slides/u3-8.jpg",
+      "etiqueta": "U3 · Diapositiva 8"
+    },
+    {
+      "src": "/slides/u3-9.jpg",
+      "etiqueta": "U3 · Diapositiva 9"
+    }
+  ],
+  "r-diseno": [
+    {
+      "src": "/slides/u3-8.jpg",
+      "etiqueta": "U3 · Diapositiva 8"
+    },
+    {
+      "src": "/slides/u3-9.jpg",
+      "etiqueta": "U3 · Diapositiva 9"
+    }
+  ],
+  "r-problema-proyecciones": [
+    {
+      "src": "/slides/u3-8.jpg",
+      "etiqueta": "U3 · Diapositiva 8"
+    }
+  ],
+  "r-elipsoide-def": [
+    {
+      "src": "/slides/u3-27.jpg",
+      "etiqueta": "U3 · Diapositiva 27"
+    },
+    {
+      "src": "/slides/u3-28.jpg",
+      "etiqueta": "U3 · Diapositiva 28"
+    }
+  ],
+  "r-semiejes": [
+    {
+      "src": "/slides/u3-28.jpg",
+      "etiqueta": "U3 · Diapositiva 28"
+    },
+    {
+      "src": "/slides/u3-29.jpg",
+      "etiqueta": "U3 · Diapositiva 29"
+    }
+  ],
+  "r-no-coinciden": [
+    {
+      "src": "/slides/u3-31.jpg",
+      "etiqueta": "U3 · Diapositiva 31"
+    },
+    {
+      "src": "/slides/u3-32.jpg",
+      "etiqueta": "U3 · Diapositiva 32"
+    },
+    {
+      "src": "/slides/u3-33.jpg",
+      "etiqueta": "U3 · Diapositiva 33"
+    }
+  ],
+  "r-desviacion": [
+    {
+      "src": "/slides/u3-33.jpg",
+      "etiqueta": "U3 · Diapositiva 33"
+    }
+  ],
+  "r-proyeccion-def": [
+    {
+      "src": "/slides/u3-46.jpg",
+      "etiqueta": "U3 · Diapositiva 46"
+    },
+    {
+      "src": "/slides/u3-47.jpg",
+      "etiqueta": "U3 · Diapositiva 47"
+    },
+    {
+      "src": "/slides/u3-48.jpg",
+      "etiqueta": "U3 · Diapositiva 48"
+    }
+  ],
+  "r-tipos-proyecciones": [
+    {
+      "src": "/slides/u3-51.jpg",
+      "etiqueta": "U3 · Diapositiva 51"
+    }
+  ],
+  "r-conformes": [
+    {
+      "src": "/slides/u3-52.jpg",
+      "etiqueta": "U3 · Diapositiva 52"
+    }
+  ],
+  "r-equivalentes": [
+    {
+      "src": "/slides/u3-53.jpg",
+      "etiqueta": "U3 · Diapositiva 53"
+    }
+  ],
+  "r-ortografica": [
+    {
+      "src": "/slides/u3-61.jpg",
+      "etiqueta": "U3 · Diapositiva 61"
+    },
+    {
+      "src": "/slides/u3-62.jpg",
+      "etiqueta": "U3 · Diapositiva 62"
+    }
+  ],
+  "r-estereografica": [
+    {
+      "src": "/slides/u3-61.jpg",
+      "etiqueta": "U3 · Diapositiva 61"
+    },
+    {
+      "src": "/slides/u3-62.jpg",
+      "etiqueta": "U3 · Diapositiva 62"
+    }
+  ],
+  "r-epsg-problema": [
+    {
+      "src": "/slides/u3-63.jpg",
+      "etiqueta": "U3 · Diapositiva 63"
+    },
+    {
+      "src": "/slides/u3-64.jpg",
+      "etiqueta": "U3 · Diapositiva 64"
+    }
+  ],
+  "r-epsg-4326": [
+    {
+      "src": "/slides/u3-67.jpg",
+      "etiqueta": "U3 · Diapositiva 67"
+    }
+  ],
+  "r-crs-srs": [
+    {
+      "src": "/slides/u3-64.jpg",
+      "etiqueta": "U3 · Diapositiva 64"
+    }
+  ],
+  "r-utm-ventaja": [
+    {
+      "src": "/slides/u3-73.jpg",
+      "etiqueta": "U3 · Diapositiva 73"
+    }
+  ],
+  "r-utm-desventaja": [
+    {
+      "src": "/slides/u3-73.jpg",
+      "etiqueta": "U3 · Diapositiva 73"
+    }
+  ],
+  "r-faja-ancho": [
+    {
+      "src": "/slides/u3-75.jpg",
+      "etiqueta": "U3 · Diapositiva 75"
+    }
+  ],
+  "r-posgar-inchauspe": [
+    {
+      "src": "/slides/u3-77.jpg",
+      "etiqueta": "U3 · Diapositiva 77"
+    },
+    {
+      "src": "/slides/u3-78.jpg",
+      "etiqueta": "U3 · Diapositiva 78"
+    }
   ]
 };

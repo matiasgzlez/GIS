@@ -38,5 +38,3 @@ next-env.d.ts
 # builds de prueba
 /.next-test/
 
-# comentarios guardados por la app
-/data/

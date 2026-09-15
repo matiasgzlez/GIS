@@ -21,7 +21,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Parcial SIG — Práctica",
+  title: "1er Parcial GIS",
   description:
     "Preguntas tipo parcial de Sistemas de Información Geográfica — UTN FRRe, Unidades 1, 2 y 3.",
 };

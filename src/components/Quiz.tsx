@@ -1,11 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { EASE } from "@/lib/motion";
-import { preguntas, UNIDADES, type Pregunta, type Unidad } from "@/lib/preguntas";
+import { NUMERO, preguntas, UNIDADES, type Pregunta, type Unidad } from "@/lib/preguntas";
 import { TEORIA, terminosEn } from "@/lib/teoria";
-import Comentarios from "@/components/Comentarios";
 import { DIAPOS } from "@/lib/diapositivas";
 
 const VERDE = "#1E7A3C";
@@ -16,20 +15,39 @@ type Estado = "inicio" | "jugando" | "final";
 /** Una pregunta del intento, con sus opciones ya mezcladas. */
 type Item = { p: Pregunta; orden: number[] };
 
-function mezclar<T>(arr: T[]): T[] {
+/** Mezcla siempre igual para la misma semilla: las opciones tienen un orden fijo por pregunta. */
+function mezclarFijo<T>(arr: T[], semilla: string): T[] {
+  let h = 2166136261;
+  for (const c of semilla) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+  const azar = () => {
+    h = Math.imul(h ^ (h >>> 15), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return ((h ^= h >>> 16) >>> 0) / 4294967296;
+  };
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(azar() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
 }
 
+/** Sin azar: las preguntas van por su número (U1 → U2 → U3). */
 function armarMazo(lista: Pregunta[]): Item[] {
-  return mezclar(lista).map((p) => ({
-    p,
-    orden: p.tipo === "vf" ? [0, 1] : mezclar(p.opciones.map((_, i) => i)),
-  }));
+  return [...lista]
+    .sort((a, b) => NUMERO[a.id] - NUMERO[b.id])
+    .map((p) => ({
+      p,
+      orden: p.tipo === "vf" ? [0, 1] : mezclarFijo(p.opciones.map((_, i) => i), p.id),
+    }));
+}
+
+/** Ajusta la figura a su proporción: ocupa todo el lugar posible sin franjas vacías. */
+function ajustarFigura(img: HTMLImageElement | null) {
+  if (!img?.naturalWidth) return;
+  const r = img.naturalWidth / img.naturalHeight;
+  img.style.width = `min(100cqw, calc(100cqh * ${r.toFixed(4)}))`;
+  img.style.aspectRatio = String(r);
 }
 
 function esCorrecta(p: Pregunta, resp: number[] | null): boolean {
@@ -37,13 +55,14 @@ function esCorrecta(p: Pregunta, resp: number[] | null): boolean {
   return resp.length === p.correctas.length && p.correctas.every((c) => resp.includes(c));
 }
 
-const etiquetaTipo: Record<Pregunta["tipo"], string> = {
-  unica: "Una sola correcta",
-  multiple: "Marcá todas las correctas",
-  vf: "Verdadero o falso",
-};
+/** Qué se practica: una unidad o todas (null). */
+type Seleccion = Unidad | null;
+const delaSeleccion = (sel: Seleccion) => (sel === null ? preguntas : preguntas.filter((p) => p.unidad === sel));
 
 const ANCHO = "mx-auto w-full max-w-[1700px] px-5 sm:px-10 lg:px-14";
+
+/** El video de fondo, cortado en tramos de ~10 MB sin recomprimir (se reproducen en cadena). */
+const TRAMOS = Array.from({ length: 17 }, (_, i) => `/video/tierra-${String(i).padStart(2, "0")}.mp4`);
 
 export default function Quiz() {
   const [estado, setEstado] = useState<Estado>("inicio");
@@ -52,16 +71,33 @@ export default function Quiz() {
   const [respuestas, setRespuestas] = useState<(number[] | null)[]>([]);
   const [marcadas, setMarcadas] = useState<number[]>([]);
   const [zoom, setZoom] = useState<string | null>(null);
-  const [panel, setPanel] = useState<null | "teoria" | "comentarios">(null);
-  const [conteos, setConteos] = useState<Record<string, number>>({});
+  const [panel, setPanel] = useState<null | "teoria">(null);
+  const [seleccion, setSeleccion] = useState<Seleccion>(null);
+  // Dos videos: uno se ve y el otro precarga el tramo siguiente para pasar sin cortes
+  const videos = [useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null)];
+  const [slots, setSlots] = useState<[number, number]>([0, 1]);
+  const [activo, setActivo] = useState(0);
 
-  // Cuántos comentarios tiene cada pregunta (para el botón)
+  // Sin video en movimiento para quien prefiere movimiento reducido
   useEffect(() => {
-    fetch("/api/comentarios")
-      .then((r) => r.json())
-      .then((d) => setConteos(d.conteos ?? {}))
-      .catch(() => {});
+    const v = videos[0].current;
+    if (!v) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) v.pause();
+    else v.play().catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const finTramo = (slot: number) => {
+    if (slot !== activo) return;
+    const otro = 1 - slot;
+    videos[otro].current?.play().catch(() => {});
+    setActivo(otro);
+    setSlots((prev) => {
+      const nuevos: [number, number] = [...prev];
+      nuevos[slot] = (prev[otro] + 1) % TRAMOS.length;
+      return nuevos;
+    });
+  };
 
   const item = mazo[indice];
   const actual = item?.p;
@@ -71,6 +107,9 @@ export default function Quiz() {
   const contestadas = respuestas.filter((r) => r !== null).length;
   const aciertos = mazo.filter((it, i) => esCorrecta(it.p, respuestas[i] ?? null)).length;
   const conMedia = Boolean(actual?.imagen || actual?.codigo);
+  let racha = 0;
+  for (let i = contestadas - 1; i >= 0 && esCorrecta(mazo[i].p, respuestas[i] ?? null); i--) racha++;
+  const avance = mazo.length ? contestadas / mazo.length : 0;
 
   const terminos = useMemo(
     () =>
@@ -104,15 +143,12 @@ export default function Quiz() {
   const tocar = useCallback(
     (original: number) => {
       if (!actual || respondida) return;
-      if (actual.tipo === "multiple") {
-        setMarcadas((prev) =>
-          prev.includes(original) ? prev.filter((x) => x !== original) : [...prev, original],
-        );
-      } else {
-        registrar([original]);
-      }
+      // Todas se marcan como casillas: no se revela cuántas correctas hay
+      setMarcadas((prev) =>
+        prev.includes(original) ? prev.filter((x) => x !== original) : [...prev, original],
+      );
     },
-    [actual, respondida, registrar],
+    [actual, respondida],
   );
 
   const confirmar = useCallback(() => {
@@ -154,11 +190,10 @@ export default function Quiz() {
       else if (e.key === "Enter") {
         e.preventDefault();
         if (respondida) siguiente();
-        else if (item.p.tipo === "multiple") confirmar();
+        else confirmar();
       } else if (e.key === "ArrowLeft") atras();
       else if (e.key === "ArrowRight" && respondida) siguiente();
       else if (e.key === "t" || e.key === "T") setPanel("teoria");
-      else if (e.key === "c" || e.key === "C") setPanel("comentarios");
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -174,13 +209,15 @@ export default function Quiz() {
 
   const nota = mazo.length ? Math.round((aciertos / mazo.length) * 100) : 0;
   const erradas = mazo.filter((it, i) => !esCorrecta(it.p, respuestas[i] ?? null));
-  const multiples = preguntas.filter((p) => p.tipo === "multiple").length;
-  const conImagen = preguntas.filter((p) => p.imagen).length;
+  const empezar = (sel: Seleccion) => {
+    setSeleccion(sel);
+    iniciar(delaSeleccion(sel));
+  };
 
   /* Enunciado: más chico si comparte columna con las opciones */
   const enunciado = actual && (
     <h2
-      className={`font-black leading-[1.06] tracking-[-0.03em] ${
+      className={`trazo font-black leading-[1.08] tracking-[-0.01em] ${
         conMedia ? "text-[clamp(22px,2.1vw,34px)]" : "text-[clamp(24px,3.2vw,52px)]"
       }`}
     >
@@ -189,21 +226,22 @@ export default function Quiz() {
   );
 
   return (
-    <main className="min-h-[100svh] w-full bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]">
-      <div className="fixed top-0 left-0 right-0 h-[3px] bg-[var(--color-divider)] z-40">
-        <motion.div
-          className="h-full bg-[var(--color-accent)]"
-          initial={false}
-          animate={{
-            width:
-              estado === "inicio"
-                ? "0%"
-                : estado === "final"
-                  ? "100%"
-                  : `${(contestadas / Math.max(mazo.length, 1)) * 100}%`,
-          }}
-          transition={{ type: "spring", stiffness: 220, damping: 30 }}
-        />
+    <main className="min-h-[100svh] w-full text-[var(--color-text-primary)]">
+      {/* Fondo: la Tierra en movimiento */}
+      <div className="fixed inset-0 -z-10 overflow-hidden bg-[var(--color-bg-primary)]" aria-hidden="true">
+        {slots.map((tramo, slot) => (
+          <video
+            key={slot}
+            ref={videos[slot]}
+            className={`absolute inset-0 h-full w-full object-cover ${slot === activo ? "opacity-100" : "opacity-0"}`}
+            src={TRAMOS[tramo]}
+            poster={slot === 0 ? "/video/tierra-poster.jpg" : undefined}
+            muted
+            playsInline
+            preload="auto"
+            onEnded={() => finTramo(slot)}
+          />
+        ))}
       </div>
 
       <AnimatePresence mode="wait">
@@ -217,39 +255,45 @@ export default function Quiz() {
             transition={{ duration: 0.35, ease: EASE }}
             className={`${ANCHO} flex min-h-[100svh] flex-col justify-center py-12`}
           >
-            <span className="font-mono text-xs sm:text-sm uppercase tracking-[0.24em] text-[var(--color-accent)]">
+            <span className="sombra font-mono text-xs sm:text-sm uppercase tracking-[0.24em]">
               UTN FRRe · Sistemas de Información Geográfica
             </span>
 
             <div className="mt-4 grid gap-10 lg:grid-cols-12 lg:items-end lg:gap-16">
-              <h1 className="font-black uppercase leading-[0.86] tracking-[-0.05em] text-[clamp(68px,13vw,230px)] lg:col-span-7">
+              <h1 className="trazo font-black uppercase leading-[0.88] tracking-[-0.04em] text-[clamp(52px,8.5vw,150px)] lg:col-span-7">
                 1er parcial <span className="text-[var(--color-accent)]">GIS</span>
               </h1>
 
-              <div className="lg:col-span-5">
-                <div className="grid grid-cols-3 gap-4 border-y-2 border-[var(--color-divider)] py-5">
-                  {[
-                    [preguntas.length, "preguntas"],
-                    [multiples, "de selección múltiple"],
-                    [conImagen, "con figuras"],
-                  ].map(([n, label]) => (
-                    <div key={label}>
-                      <span className="block font-black leading-none tracking-[-0.04em] text-[clamp(32px,4vw,56px)]">
-                        {n}
-                      </span>
-                      <span className="mt-1 block font-mono text-[11px] uppercase tracking-[0.14em] leading-tight">
-                        {label}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
+              <div className="flex flex-col gap-3 lg:col-span-5">
                 <button
-                  onClick={() => iniciar(preguntas)}
-                  className="mt-8 w-full rounded-xl bg-[var(--color-accent)] px-8 py-6 text-2xl font-black uppercase tracking-tight text-white transition-opacity hover:opacity-90 active:opacity-80"
+                  onClick={() => empezar(null)}
+                  className="flex w-full flex-col items-start gap-1 rounded-xl bg-[var(--color-accent)] px-6 py-5 text-left text-white sm:flex-row sm:items-center sm:justify-between sm:gap-4 transition-opacity hover:opacity-90 active:opacity-80 sm:px-8"
                 >
-                  Empezar →
+                  <span className="text-xl font-black uppercase tracking-tight sm:text-2xl">Empezar global →</span>
+                  <span className="font-mono text-xs uppercase tracking-[0.14em]">{preguntas.length} preguntas</span>
                 </button>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {([1, 2, 3] as Unidad[]).map((u) => (
+                    <button
+                      key={u}
+                      onClick={() => empezar(u)}
+                      className="flex flex-col items-start rounded-xl border-2 border-white bg-white/90 px-5 py-4 text-left transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+                    >
+                      <span className="text-xl font-black uppercase tracking-tight">Unidad {u}</span>
+                      <span className="mt-1 font-mono text-[11px] uppercase tracking-[0.14em]">
+                        {delaSeleccion(u).length} preguntas
+                      </span>
+                    </button>
+                  ))}
+                  <button
+                    disabled
+                    className="flex cursor-not-allowed flex-col items-start rounded-xl border-2 border-dashed border-white bg-white/50 px-5 py-4 text-left"
+                  >
+                    <span className="text-xl font-black uppercase tracking-tight opacity-60">Unidad 4</span>
+                    <span className="mt-1 font-mono text-[11px] uppercase tracking-[0.14em] opacity-60">Próximamente</span>
+                  </button>
+                </div>
               </div>
             </div>
           </motion.section>
@@ -263,36 +307,38 @@ export default function Quiz() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -24 }}
             transition={{ duration: 0.25, ease: EASE }}
-            className={`${ANCHO} flex min-h-[100svh] flex-col py-5 lg:h-[100svh] lg:py-7`}
+            className={`${ANCHO} flex min-h-[100svh] flex-col pt-5 pb-24 lg:h-[100svh] lg:pt-5 lg:pb-16`}
           >
             {/* Barra superior */}
-            <div className="flex items-center justify-between gap-4 font-mono text-xs sm:text-sm uppercase tracking-[0.18em]">
-              <div className="flex items-center gap-4">
-                <span>
-                  {String(indice + 1).padStart(2, "0")}
-                  <span className="text-[var(--color-divider)]"> / </span>
-                  {String(mazo.length).padStart(2, "0")}
-                </span>
-                <span className="font-bold text-[var(--color-accent)]">{etiquetaTipo[actual.tipo]}</span>
+            <div className="sombra flex flex-wrap items-center justify-between gap-x-4 gap-y-2 whitespace-nowrap font-mono text-xs sm:text-sm uppercase tracking-[0.18em]">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <button
+                  onClick={() => setEstado("inicio")}
+                  className="rounded-full border-2 border-white px-3 py-1 font-bold transition-colors hover:bg-white hover:text-[var(--color-text-primary)] hover:[text-shadow:none]"
+                >
+                  ← Menú<span className="hidden sm:inline"> principal</span>
+                </button>
+                <span className="font-bold">Nº {NUMERO[actual.id]}</span>
+                <span className="hidden sm:inline">{UNIDADES[actual.unidad].corto}</span>
                 {actual.origen === "clase" && (
-                  <span className="rounded border border-[var(--color-text-primary)] px-2 py-0.5 text-[10px] sm:text-xs">
+                  <span className="rounded border border-white px-2 py-0.5 text-[10px] sm:text-xs">
                     Apunte de clase
                   </span>
                 )}
               </div>
               <div className="flex items-center gap-4">
                 {indice > 0 && (
-                  <button onClick={atras} className="transition-colors hover:text-[var(--color-accent)]">
-                    ← Anterior
+                  <button onClick={atras} className="transition-opacity hover:opacity-70">
+                    ←<span className="hidden sm:inline"> Anterior</span>
                   </button>
                 )}
-                <span className="font-bold" style={{ color: VERDE }}>
+                <span className="font-bold">
                   {aciertos} ✓
                 </span>
               </div>
             </div>
 
-            <div className="mt-4 grid flex-1 gap-6 lg:mt-6 lg:min-h-0 lg:grid-cols-2 lg:gap-12">
+            <div className="mt-4 grid flex-1 gap-6 lg:mt-4 lg:min-h-0 lg:grid-cols-2 lg:gap-12">
               {/* Izquierda: figura / código, o el enunciado si no hay figura */}
               <div className="flex min-w-0 flex-col lg:min-h-0">
                 {conMedia && (
@@ -302,14 +348,16 @@ export default function Quiz() {
                 {actual.imagen ? (
                   <button
                     onClick={() => setZoom(`/img/${actual.imagen}.jpg`)}
-                    className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-xl border-2 border-[var(--color-divider)] bg-white p-3 transition-colors hover:border-[var(--color-accent)]"
+                    className="group relative h-[36svh] w-full [container-type:size] lg:h-auto lg:min-h-0 lg:flex-1"
                     aria-label="Ampliar imagen"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
+                      ref={ajustarFigura}
+                      onLoad={(e) => ajustarFigura(e.currentTarget)}
                       src={`/img/${actual.imagen}.jpg`}
                       alt=""
-                      className="max-h-[36svh] max-w-full object-contain lg:max-h-full"
+                      className="absolute inset-0 m-auto h-auto max-h-full w-full max-w-full rounded-xl border-2 border-white bg-white object-contain p-2 transition-colors group-hover:border-[var(--color-accent)]"
                       draggable={false}
                     />
                   </button>
@@ -332,23 +380,23 @@ export default function Quiz() {
                     const esCorr = actual.correctas.includes(original);
                     const elegida = respondida ? respuesta!.includes(original) : marcadas.includes(original);
 
-                    let estilo = "border-[var(--color-divider)]";
+                    let estilo = "border-[var(--color-divider)] bg-white/85";
                     let inline: React.CSSProperties | undefined;
                     if (respondida) {
                       if (esCorr && elegida) {
                         estilo = "border-transparent";
                         inline = { backgroundColor: VERDE, color: "#FFFFFF" };
                       } else if (esCorr) {
-                        estilo = "border-dashed";
+                        estilo = "border-dashed bg-white/85";
                         inline = { borderColor: VERDE, color: VERDE };
                       } else if (elegida) {
                         estilo = "border-transparent";
                         inline = { backgroundColor: "var(--color-accent)", color: "#FFFFFF" };
                       } else {
-                        estilo = "border-[var(--color-divider)] opacity-40";
+                        estilo = "border-[var(--color-divider)] bg-white/85 opacity-50";
                       }
                     } else if (elegida) {
-                      estilo = "border-[var(--color-text-primary)] bg-[var(--color-bg-secondary)]";
+                      estilo = "border-[var(--color-bg-dark)] bg-[var(--color-bg-dark)] text-white";
                     }
 
                     return (
@@ -356,18 +404,16 @@ export default function Quiz() {
                         key={original}
                         onClick={() => tocar(original)}
                         disabled={respondida}
-                        className={`flex items-start gap-3 rounded-xl border-2 px-4 py-3 lg:py-2.5 text-left text-base leading-snug transition-colors xl:text-lg ${estilo} ${
+                        className={`flex items-start gap-3 rounded-xl border-2 px-4 py-3 lg:py-2 text-left text-base leading-snug transition-colors xl:text-lg ${estilo} ${
                           !respondida ? "hover:border-[var(--color-accent)]" : ""
                         }`}
                         style={inline}
                       >
                         <span
-                          className={`mt-px flex h-6 w-6 shrink-0 items-center justify-center border-2 font-mono text-xs font-bold ${
-                            actual.tipo === "multiple" ? "rounded-md" : "rounded-full"
-                          }`}
+                          className="mt-px flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 font-mono text-xs font-bold"
                           style={{ borderColor: "currentColor", opacity: 0.8 }}
                         >
-                          {actual.tipo === "multiple" && elegida ? "✓" : LETRAS[pos]}
+                          {elegida ? "✓" : LETRAS[pos]}
                         </span>
                         <span className="min-w-0">{texto}</span>
                       </button>
@@ -383,9 +429,9 @@ export default function Quiz() {
                     transition={{ duration: 0.25, ease: EASE }}
                     className="mt-4"
                   >
-                    <p className="text-base leading-snug xl:text-lg">
+                    <p className="rounded-xl bg-white/85 px-3 py-2 text-base leading-snug xl:text-lg">
                       <span className="font-black" style={{ color: acerto ? VERDE : "var(--color-accent)" }}>
-                        {acerto ? "✓ Correcto. " : actual.tipo === "multiple" ? "✗ No es esa combinación. " : "✗ No era esa. "}
+                        {acerto ? "✓ Correcto. " : "✗ Incorrecto. "}
                       </span>
                       {actual.explicacion}
                     </p>
@@ -395,26 +441,12 @@ export default function Quiz() {
                 <div className="mt-3 flex gap-3 pb-1">
                   <button
                     onClick={() => setPanel("teoria")}
-                    className="shrink-0 rounded-xl border-2 border-[var(--color-text-primary)] px-4 py-4 text-base font-black uppercase tracking-tight transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] sm:px-5"
+                    className="shrink-0 rounded-xl border-2 border-[var(--color-text-primary)] bg-white/85 px-4 py-4 text-base font-black uppercase tracking-tight transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] sm:px-5"
                   >
                     Teoría
                   </button>
 
-                  <button
-                    onClick={() => setPanel("comentarios")}
-                    aria-label="Comentarios"
-                    className="shrink-0 rounded-xl border-2 border-[var(--color-text-primary)] px-4 py-4 text-base font-black uppercase tracking-tight transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] sm:px-5"
-                  >
-                    <span className="hidden sm:inline">Comentarios</span>
-                    <span className="sm:hidden">💬</span>
-                    {(conteos[actual.id] ?? 0) > 0 && (
-                      <span className="ml-1.5 rounded-full bg-[var(--color-accent)] px-2 py-0.5 text-xs text-white">
-                        {conteos[actual.id]}
-                      </span>
-                    )}
-                  </button>
-
-                  {!respondida && actual.tipo === "multiple" && (
+                  {!respondida && (
                     <button
                       onClick={confirmar}
                       disabled={marcadas.length === 0}
@@ -448,7 +480,7 @@ export default function Quiz() {
             className={`${ANCHO} py-12 sm:py-16`}
           >
             <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
-              <div className="min-w-0 lg:sticky lg:top-12 lg:self-start">
+              <div className="min-w-0 rounded-2xl bg-white/90 p-6 sm:p-8 lg:sticky lg:top-12 lg:self-start">
                 <span className="font-mono text-sm uppercase tracking-[0.22em]">Resultado</span>
 
                 <div className="mt-3 flex items-baseline gap-3">
@@ -503,7 +535,7 @@ export default function Quiz() {
                   </button>
                 )}
                 <button
-                  onClick={() => iniciar(preguntas)}
+                  onClick={() => empezar(seleccion)}
                   className={`${
                     erradas.length > 0
                       ? "mt-3 border-2 border-[var(--color-text-primary)]"
@@ -512,15 +544,24 @@ export default function Quiz() {
                 >
                   Empezar de nuevo
                 </button>
+                <button
+                  onClick={() => setEstado("inicio")}
+                  className="mt-3 w-full rounded-xl border-2 border-[var(--color-text-primary)] px-8 py-4 text-lg font-black uppercase tracking-tight transition-opacity hover:opacity-80"
+                >
+                  Volver al inicio
+                </button>
               </div>
 
               {erradas.length > 0 && (
-                <div className="min-w-0">
+                <div className="min-w-0 self-start rounded-2xl bg-white/90 p-6 sm:p-8">
                   <span className="font-mono text-sm uppercase tracking-[0.2em]">Para repasar</span>
                   <ul className="mt-4 flex flex-col gap-6">
                     {erradas.map(({ p }) => (
                       <li key={p.id} className="border-l-4 border-[var(--color-accent)] pl-5">
-                        <span className="block text-lg font-bold leading-snug">{p.enunciado}</span>
+                        <span className="block text-lg font-bold leading-snug">
+                          <span className="font-mono text-sm text-[var(--color-accent)]">Nº {NUMERO[p.id]} · </span>
+                          {p.enunciado}
+                        </span>
                         <span className="mt-2 block text-lg leading-snug" style={{ color: VERDE }}>
                           {p.tipo === "vf" ? VF[p.correctas[0]] : p.correctas.map((c) => p.opciones[c]).join(" · ")}
                         </span>
@@ -531,6 +572,61 @@ export default function Quiz() {
               )}
             </div>
           </motion.section>
+        )}
+      </AnimatePresence>
+
+      {/* Progreso: la ruta del avión y la racha de aciertos */}
+      <AnimatePresence>
+        {estado === "jugando" && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 16 }}
+            transition={{ duration: 0.3, ease: EASE }}
+            className="fixed bottom-4 left-1/2 z-40 flex w-[min(680px,calc(100vw-2rem))] -translate-x-1/2 items-center gap-3 rounded-full bg-black/55 px-4 py-2.5 lg:bottom-3 lg:py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-white backdrop-blur-md sm:gap-5 sm:px-6 sm:text-xs"
+          >
+            <span className="shrink-0 tabular-nums">
+              {contestadas}
+              <span className="opacity-60">/{mazo.length}</span>
+            </span>
+
+            <div className="relative h-8 flex-1" role="progressbar" aria-valuemin={0} aria-valuemax={mazo.length} aria-valuenow={contestadas}>
+              <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-[#6E7F2E]" />
+              <motion.div
+                className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#1F8A70] to-[#7CC242]"
+                initial={false}
+                animate={{ width: `${avance * 100}%` }}
+                transition={{ type: "spring", stiffness: 120, damping: 22 }}
+              />
+              <motion.svg
+                viewBox="0 0 24 24"
+                className="absolute top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]"
+                initial={false}
+                animate={{ left: `${avance * 100}%` }}
+                transition={{ type: "spring", stiffness: 120, damping: 22 }}
+                aria-hidden="true"
+              >
+                <path
+                  fill="#F2C744"
+                  transform="rotate(90 12 12)"
+                  d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"
+                />
+              </motion.svg>
+            </div>
+
+            <span className="flex shrink-0 items-center gap-1.5">
+              <span className="hidden sm:inline">Racha</span>
+              <motion.span
+                key={racha}
+                initial={{ scale: racha > 0 ? 1.6 : 1 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                className={`inline-block text-sm font-bold tabular-nums sm:text-base ${racha >= 3 ? "text-[#F2C744]" : ""}`}
+              >
+                {racha >= 3 ? "🔥" : "⚡"} {racha}
+              </motion.span>
+            </span>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -621,45 +717,6 @@ export default function Quiz() {
               </div>
             </motion.div>
           </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Panel de comentarios */}
-      <AnimatePresence>
-        {panel === "comentarios" && actual && (
-          <>
-            <motion.div
-              className="fixed inset-0 z-40 bg-black/40"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setPanel(null)}
-            />
-            <motion.aside
-              className="fixed top-0 right-0 bottom-0 z-50 w-full overflow-y-auto bg-white px-6 py-7 shadow-2xl sm:w-[560px] sm:px-8"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ duration: 0.3, ease: EASE }}
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-xs uppercase tracking-[0.2em] font-bold text-[var(--color-accent)]">
-                  {actual.tema}
-                </span>
-                <button
-                  onClick={() => setPanel(null)}
-                  className="font-mono text-xs uppercase tracking-[0.18em] hover:text-[var(--color-accent)]"
-                >
-                  Cerrar ✕
-                </button>
-              </div>
-              <Comentarios
-                preguntaId={actual.id}
-                enunciado={actual.enunciado}
-                onCambio={(n) => setConteos((c) => ({ ...c, [actual.id]: n }))}
-              />
-            </motion.aside>
-          </>
         )}
       </AnimatePresence>
 

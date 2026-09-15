@@ -20,12 +20,16 @@
   --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
+html {
+  background: var(--color-bg-primary);
+}
+
+/* Sin fondo propio: el video de fondo queda detrás del contenido */
 html,
 body {
   margin: 0;
   padding: 0;
   font-family: var(--font-sans);
-  background: var(--color-bg-primary);
   color: var(--color-text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -33,6 +37,54 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+/* Texto negro con trazo blanco, legible sobre el video */
+.trazo {
+  /* Contorno con sombras: queda siempre detrás del relleno de las letras */
+  text-shadow:
+    0.0750em 0.0000em 0 #FFFFFF,
+    0.0724em 0.0194em 0 #FFFFFF,
+    0.0650em 0.0375em 0 #FFFFFF,
+    0.0530em 0.0530em 0 #FFFFFF,
+    0.0375em 0.0650em 0 #FFFFFF,
+    0.0194em 0.0724em 0 #FFFFFF,
+    0.0000em 0.0750em 0 #FFFFFF,
+    -0.0194em 0.0724em 0 #FFFFFF,
+    -0.0375em 0.0650em 0 #FFFFFF,
+    -0.0530em 0.0530em 0 #FFFFFF,
+    -0.0650em 0.0375em 0 #FFFFFF,
+    -0.0724em 0.0194em 0 #FFFFFF,
+    -0.0750em 0.0000em 0 #FFFFFF,
+    -0.0724em -0.0194em 0 #FFFFFF,
+    -0.0650em -0.0375em 0 #FFFFFF,
+    -0.0530em -0.0530em 0 #FFFFFF,
+    -0.0375em -0.0650em 0 #FFFFFF,
+    -0.0194em -0.0724em 0 #FFFFFF,
+    -0.0000em -0.0750em 0 #FFFFFF,
+    0.0194em -0.0724em 0 #FFFFFF,
+    0.0375em -0.0650em 0 #FFFFFF,
+    0.0530em -0.0530em 0 #FFFFFF,
+    0.0650em -0.0375em 0 #FFFFFF,
+    0.0724em -0.0194em 0 #FFFFFF,
+    0.0400em 0.0000em 0 #FFFFFF,
+    0.0346em 0.0200em 0 #FFFFFF,
+    0.0200em 0.0346em 0 #FFFFFF,
+    0.0000em 0.0400em 0 #FFFFFF,
+    -0.0200em 0.0346em 0 #FFFFFF,
+    -0.0346em 0.0200em 0 #FFFFFF,
+    -0.0400em 0.0000em 0 #FFFFFF,
+    -0.0346em -0.0200em 0 #FFFFFF,
+    -0.0200em -0.0346em 0 #FFFFFF,
+    -0.0000em -0.0400em 0 #FFFFFF,
+    0.0200em -0.0346em 0 #FFFFFF,
+    0.0346em -0.0200em 0 #FFFFFF;
+}
+
+/* Texto blanco con sombra, para las etiquetas chicas sobre el video */
+.sombra {
+  color: #FFFFFF;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85), 0 0 12px rgba(0, 0, 0, 0.45);
 }
 
 ::selection {
