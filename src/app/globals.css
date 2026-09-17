@@ -101,3 +101,21 @@ body {
 button {
   font-family: inherit;
 }
+
+/* Hoja A4 del recorrido: barra de scroll siempre visible */
+.lector {
+  scrollbar-width: auto;
+  scrollbar-color: var(--color-accent) #E6E6E6;
+  scrollbar-gutter: stable;
+}
+.lector::-webkit-scrollbar {
+  width: 14px;
+}
+.lector::-webkit-scrollbar-track {
+  background: #E6E6E6;
+}
+.lector::-webkit-scrollbar-thumb {
+  background: var(--color-accent);
+  border: 3px solid #E6E6E6;
+  border-radius: 8px;
+}

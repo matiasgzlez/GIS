@@ -27,6 +27,8 @@ export type Pregunta = {
   fuente: string;
   /** "clase": sale de las anotaciones de clase / presentación, no de los PDFs. */
   origen?: "clase";
+  /** Tema marcado como importante (o "pregunta de parcial") en los apuntes de clase. */
+  importante?: true;
 };
 
 export const UNIDADES: Record<Unidad, { nombre: string; corto: string }> = {
@@ -57,6 +59,7 @@ const banco: Pregunta[] = [
     explicacion:
       "La clave es la integración de hardware + software + datos geográficos, con el fin de resolver problemas complejos de planificación y gestión.",
     fuente: "Unidad 1 · Concepto, pág. 1",
+    importante: true,
   },
   {
     id: "u1-componentes",
@@ -158,11 +161,11 @@ const banco: Pregunta[] = [
     tema: "Revisión histórica",
     tipo: "unica",
     enunciado:
-      "La etapa ligada al abaratamiento de la tecnología y al acceso de los usuarios a programas y datos (y a opciones libres de software y datos) es la:",
+      "La etapa ligada al abaratamiento de la tecnología es la:",
     opciones: ["Etapa inicial", "Segunda etapa", "Tercera etapa", "Cuarta etapa"],
     correctas: [3],
     explicacion:
-      "Inicial: primeros intentos. Segunda: impulso tecnológico de los 70. Tercera: desarrollo industrial. Cuarta: abaratamiento y acceso de usuarios.",
+      "Inicial: primeros intentos de desarrollo. Segunda: impulso tecnológico de la década de 1970. Tercera: desarrollo industrial y adquisición por instituciones. Cuarta: abaratamiento de la tecnología.",
     fuente: "Unidad 1 · 2. Revisión histórica, pág. 4",
   },
   {
@@ -250,6 +253,7 @@ const banco: Pregunta[] = [
     explicacion:
       "La lista del apunte también incluye: dimensión de B (perímetro, área, volumen), camino más corto, objetos próximos a otros con ciertas características, clasificar información espacial y simular un proceso P en un tiempo T.",
     fuente: "Unidad 1 · Concepto, pág. 1",
+    importante: true,
   },
   {
     id: "u1-analisis",
@@ -443,6 +447,7 @@ const banco: Pregunta[] = [
     explicacion:
       "Geográfico (alto nivel, conceptual) → Representación (serie finita de elementos) → Almacenamiento (bajo nivel, naturaleza informática).",
     fuente: "Unidad 2 (parte 1) · diapositiva 18",
+    importante: true,
   },
   {
     id: "u2-regla-oro",
@@ -1227,6 +1232,7 @@ const banco: Pregunta[] = [
     correctas: [0, 1, 2, 4],
     explicacion: "La notación es modelo : realidad, así que en 1:100 el 1 es el modelo.",
     fuente: "Unidad 3 · diapositivas 11-13",
+    importante: true,
   },
   {
     id: "u3-forma",
@@ -1483,6 +1489,7 @@ const banco: Pregunta[] = [
     correctas: [0, 1, 2],
     explicacion: "EPSG = European Petroleum Survey Group, que creó el EPSG Geodetic Dataset con CRS y transformaciones.",
     fuente: "Unidad 3 · diapositivas 63-65",
+    importante: true,
   },
   {
     id: "u3-epsg-4326",
@@ -1951,6 +1958,7 @@ const banco: Pregunta[] = [
     correctas: [0],
     explicacion: "Los SIG son herramientas versátiles: según la situación se usa prioritariamente una u otra capacidad (análisis, consulta, visualización/representación).",
     fuente: "Presentación Unidad 1 · 3. Áreas de aplicación",
+    importante: true,
     origen: "clase",
   },
   {
@@ -1963,6 +1971,7 @@ const banco: Pregunta[] = [
     correctas: [V],
     explicacion: "Es la conclusión de la diapositiva: los SIG son versátiles y adaptables a distintas situaciones y entornos.",
     fuente: "Presentación Unidad 1 · 3. Áreas de aplicación",
+    importante: true,
     origen: "clase",
   },
   {
@@ -1981,6 +1990,7 @@ const banco: Pregunta[] = [
     correctas: [0, 1, 2, 3],
     explicacion: "Son cuatro: modelizadora, para toma de decisiones (caso particular de la anterior), para difusión de información geográfica y centralizadora.",
     fuente: "Presentación Unidad 1 · Clasificación de los papeles de un SIG",
+    importante: true,
     origen: "clase",
   },
   {
@@ -1993,6 +2003,7 @@ const banco: Pregunta[] = [
     correctas: [0],
     explicacion: "Usa procesos de análisis espacial para modelizar una realidad geográfica compleja (cómo se propaga el brote).",
     fuente: "Presentación Unidad 1 · Papeles de un SIG (ejemplo de clase)",
+    importante: true,
     origen: "clase",
   },
   {
@@ -2005,6 +2016,7 @@ const banco: Pregunta[] = [
     correctas: [1],
     explicacion: "Se decide en función de distintas variables, cada una en una capa, que se combinan. Es un caso particular de la herramienta modelizadora.",
     fuente: "Presentación Unidad 1 · Papeles de un SIG (ejemplo de clase)",
+    importante: true,
     origen: "clase",
   },
   {
@@ -2017,6 +2029,7 @@ const banco: Pregunta[] = [
     correctas: [2],
     explicacion: "Ofrece funcionalidades propias de un SIG a usuarios sin perfil técnico; las tecnologías web cumplen un papel clave con mapas interactivos.",
     fuente: "Presentación Unidad 1 · Papeles de un SIG (ejemplo de clase)",
+    importante: true,
     origen: "clase",
   },
   {
@@ -2029,6 +2042,7 @@ const banco: Pregunta[] = [
     correctas: [0],
     explicacion: "Coordina las tareas de un equipo y organiza y gestiona la información geográfica mediante el diseño e implementación de una base de datos geográfica.",
     fuente: "Presentación Unidad 1 · Papeles de un SIG (ejemplo de clase)",
+    importante: true,
     origen: "clase",
   },
   {
@@ -2041,6 +2055,7 @@ const banco: Pregunta[] = [
     correctas: [V],
     explicacion: "Así lo indica la clasificación: decisiones en función de distintas variables (cada una una capa, que se pueden combinar).",
     fuente: "Presentación Unidad 1 · Papeles de un SIG",
+    importante: true,
     origen: "clase",
   },
   {
@@ -2058,6 +2073,7 @@ const banco: Pregunta[] = [
     correctas: [0, 1, 2],
     explicacion: "Justamente su valor es llegar a usuarios sin perfil técnico.",
     fuente: "Presentación Unidad 1 · Papeles de un SIG",
+    importante: true,
     origen: "clase",
   },
   {
@@ -2070,6 +2086,7 @@ const banco: Pregunta[] = [
     correctas: [0, 1, 2, 3, 4, 5],
     explicacion: "El apunte de la unidad 1 los agrupa en hardware, software, datos, personal y métodos; en clase se listaron también los procedimientos.",
     fuente: "Anotaciones de clase · Unidad 1 · 4. Componentes",
+    importante: true,
     origen: "clase",
   },
   {
@@ -2089,6 +2106,7 @@ const banco: Pregunta[] = [
     correctas: [0, 1, 2, 3, 4],
     explicacion: "Olaya agrupa hardware y software como “tecnología”, y suma procesos (análisis), visualización, datos y el factor organizativo (personas). Verificalo con tus apuntes: no está en los PDFs.",
     fuente: "Anotaciones de clase · Olaya, Sistemas de Información Geográfica (libro citado en la U2)",
+    importante: true,
     origen: "clase",
   },
   {
@@ -2107,6 +2125,7 @@ const banco: Pregunta[] = [
     correctas: [0, 1],
     explicacion: "Representar en el plano es el problema de las proyecciones; organizar los elementos es el diseño.",
     fuente: "Unidad 3 · diapositivas 8-9",
+    importante: true,
   },
   {
     id: "c-generalizacion-tipos",
@@ -2118,6 +2137,7 @@ const banco: Pregunta[] = [
     correctas: [0],
     explicacion: "Conforme/equivalente son propiedades de proyecciones, tangente/secante son superficies desarrollables y raster/vectorial modelos de representación.",
     fuente: "Anotaciones de clase (3/9)",
+    importante: true,
     origen: "clase",
   },
   {
@@ -2130,6 +2150,7 @@ const banco: Pregunta[] = [
     correctas: [0],
     explicacion: "Al vuelo: se generaliza en el momento. Multiescala: se tienen preparadas versiones de la información para distintas escalas. Verificalo con tus apuntes: no está en los PDFs.",
     fuente: "Anotaciones de clase (3/9)",
+    importante: true,
     origen: "clase",
   },
   {
@@ -2143,6 +2164,7 @@ const banco: Pregunta[] = [
     correctas: [0, 1, 2, 3, 4],
     explicacion: "El apunte solo dice que la escala debe estar consignada en los mapas; el resto sale de la clase. Verificá la lista completa con tus apuntes.",
     fuente: "Anotaciones de clase (3/9) · Unidad 3 · diapositiva 11",
+    importante: true,
     origen: "clase",
   },
 
@@ -2202,6 +2224,7 @@ const banco: Pregunta[] = [
     correctas: [1],
     explicacion: "Modelo : realidad. El dibujo es 2 veces la realidad → 2:1, escala de ampliación (se usa para piezas pequeñas).",
     fuente: "Unidad 3 · diapositivas 11-12",
+    importante: true,
   },
   {
     id: "e-escala-representaciones",
@@ -2214,6 +2237,7 @@ const banco: Pregunta[] = [
     correctas: [0, 1, 2],
     explicacion: "Las tres representaciones del apunte: numérica, unidad por unidad y gráfica. Los tipos, en cambio, son natural, de reducción y de ampliación.",
     fuente: "Unidad 3 · diapositiva 13",
+    importante: true,
   },
   {
     id: "e-escala-comparar",
@@ -2325,7 +2349,221 @@ const banco: Pregunta[] = [
     fuente: "Unidad 3 · diapositivas 28-30",
   },
 
+  /* ─────────────── Apuntes de clase: temas marcados como importantes ─────────────── */
+  {
+    id: "c-categorias",
+    unidad: 1,
+    tema: "Preguntas que responde un SIG",
+    tipo: "multiple",
+    enunciado: "Las preguntas que un SIG debe poder responder se agrupan en categorías. ¿Cuáles son?",
+    opciones: ["Localización", "Relación", "Densidad / Distancia", "Atributos", "Morfometría", "Análisis espacial", "Compresión"],
+    correctas: [0, 1, 2, 3, 4, 5],
+    explicacion: "Localización (¿dónde está A? / ¿qué hay en x,y?), Relación (¿dónde está A respecto de B?), Densidad/Distancia (¿cuántas A hay a una distancia D de B?), Atributos (valor de Z en X), Morfometría (dimensión de B) y Análisis espacial (intersección de capas).",
+    fuente: "Presentación Unidad 1 · Preguntas que responde un SIG",
+    importante: true,
+    origen: "clase",
+  },
+  {
+    id: "c-cat-localizacion",
+    unidad: 1,
+    tema: "Preguntas que responde un SIG",
+    tipo: "unica",
+    enunciado: "EJERCICIO — “¿Qué hay en el punto (x, y)?” ¿A qué categoría de pregunta pertenece?",
+    opciones: ["Localización", "Atributos", "Relación", "Morfometría"],
+    correctas: [0],
+    explicacion: "Localización agrupa “¿Dónde está el objeto A?” y “¿Qué hay en el punto x,y?”.",
+    fuente: "Presentación Unidad 1 · Preguntas que responde un SIG",
+    importante: true,
+    origen: "clase",
+  },
+  {
+    id: "c-cat-atributos",
+    unidad: 1,
+    tema: "Preguntas que responde un SIG",
+    tipo: "unica",
+    enunciado: "EJERCICIO — “¿Cuál es el valor de la función Z en la posición X?” ¿A qué categoría de pregunta pertenece?",
+    opciones: ["Atributos", "Localización", "Densidad / Distancia", "Análisis espacial"],
+    correctas: [0],
+    explicacion: "Atributos: el valor de una variable en una posición. Localización pregunta dónde está algo o qué hay en un punto.",
+    fuente: "Presentación Unidad 1 · Preguntas que responde un SIG",
+    importante: true,
+    origen: "clase",
+  },
+  {
+    id: "c-cat-morfometria",
+    unidad: 1,
+    tema: "Preguntas que responde un SIG",
+    tipo: "unica",
+    enunciado: "EJERCICIO — “¿Cuál es el perímetro, el área o el volumen de B?” ¿A qué categoría de pregunta pertenece?",
+    opciones: ["Morfometría", "Atributos", "Relación", "Densidad / Distancia"],
+    correctas: [0],
+    explicacion: "Morfometría: la dimensión de B (perímetro, área, volumen).",
+    fuente: "Presentación Unidad 1 · Preguntas que responde un SIG",
+    importante: true,
+    origen: "clase",
+  },
+  {
+    id: "c-cat-analisis",
+    unidad: 1,
+    tema: "Preguntas que responde un SIG",
+    tipo: "unica",
+    enunciado: "EJERCICIO — “¿Cuál es el resultado de la intersección de diferentes capas de información?” ¿A qué categoría de pregunta pertenece?",
+    opciones: ["Análisis espacial", "Relación", "Morfometría", "Localización"],
+    correctas: [0],
+    explicacion: "Análisis espacial: cruzar (intersectar) distintas capas de información.",
+    fuente: "Presentación Unidad 1 · Preguntas que responde un SIG",
+    importante: true,
+    origen: "clase",
+  },
+  {
+    id: "r-ncgia",
+    unidad: 1,
+    tema: "Concepto",
+    tipo: "unica",
+    enunciado: "Según la definición de la NCGIA (1990), un SIG es un sistema de…",
+    opciones: ["Hardware, software y procedimientos para la obtención, gestión, manipulación, análisis, modelado, representación y salida de datos espacialmente referenciados, para resolver problemas complejos de planificación y gestión", "Imágenes satelitales para producir cartografía impresa", "Procedimientos exclusivamente manuales para dibujar mapas", "Bases de datos alfanuméricas sin referencia espacial"],
+    correctas: [0],
+    explicacion: "NCGIA: National Center for Geographic Information and Analysis. Aronoff (1989) lo define como procedimientos manuales o computarizados para almacenar y tratar datos georreferenciados.",
+    fuente: "Unidad 1 · Definiciones, pág. 3",
+    importante: true,
+  },
+  {
+    id: "c-factores-clasificacion",
+    unidad: 1,
+    tema: "Áreas de aplicación",
+    tipo: "multiple",
+    enunciado: "Para clasificar los ámbitos de aplicación de un SIG se usan factores relativos a los elementos que lo conforman. ¿Cuáles son?",
+    opciones: ["Procesos principales de interés", "Tipo fundamental de datos con los que se trabaja", "Volumen de variables y datos empleados", "Precisión de trabajo necesaria", "Tipo de usuarios de SIG esperados", "Complejidad de las operaciones y tareas", "La marca del software utilizado", "El color de los mapas"],
+    correctas: [0, 1, 2, 3, 4, 5],
+    explicacion: "También: la medida en que los SIG responden a las necesidades existentes. Además de estos factores se tienen en cuenta el ámbito propiamente dicho y las funcionalidades esperadas.",
+    fuente: "Presentación Unidad 1 · Caracterización de las aplicaciones de un SIG",
+    importante: true,
+    origen: "clase",
+  },
+  {
+    id: "c-recursos-naturales",
+    unidad: 1,
+    tema: "Áreas de aplicación",
+    tipo: "multiple",
+    enunciado: "Sobre el área de GESTIÓN DE RECURSOS NATURALES, marcá lo correcto.",
+    opciones: ["Usan la tecnología SIG desde sus orígenes", "Son responsables del desarrollo de los primeros SIG", "Usan datos de tipos variados (raster y vectorial)", "Sus capacidades más usadas son la gestión de datos y el análisis", "Solo trabajan con datos vectoriales"],
+    correctas: [0, 1, 2, 3],
+    explicacion: "Ejemplo de esos orígenes: el CGIS se hizo para inventariar los recursos forestales de Canadá.",
+    fuente: "Presentación Unidad 1 · Áreas de aplicación de un SIG",
+    importante: true,
+    origen: "clase",
+  },
+  {
+    id: "c-riesgos",
+    unidad: 1,
+    tema: "Áreas de aplicación",
+    tipo: "multiple",
+    enunciado: "Sobre el área de GESTIÓN DE RIESGOS (naturales o generados por el hombre), marcá lo correcto.",
+    opciones: ["Estudia la distribución y la probabilidad de ocurrencia de los riesgos", "Se usa fundamentalmente la capacidad de análisis", "Usa principalmente datos raster (variables continuas) y también vectoriales, como registros de incendios o inundaciones", "Sus usuarios son avanzados y exigen amplias funcionalidades", "Sus usuarios no tienen perfil técnico y usan funciones mínimas"],
+    correctas: [0, 1, 2, 3],
+    explicacion: "A diferencia de la difusión de información geográfica, acá los usuarios son avanzados.",
+    fuente: "Presentación Unidad 1 · Áreas de aplicación de un SIG",
+    importante: true,
+    origen: "clase",
+  },
+  {
+    id: "c-dos-factores",
+    unidad: 1,
+    tema: "Revisión histórica",
+    tipo: "multiple",
+    enunciado: "En la década del ’60 aparecen los componentes principales de los SIG gracias a que confluyen dos factores. ¿Cuáles?",
+    opciones: ["La necesidad de información geográfica y de una gestión y uso óptimo de la misma", "La aparición de las primeras computadoras", "El abaratamiento del software y el hardware", "La difusión de internet y del software libre"],
+    correctas: [0, 1],
+    explicacion: "Estos dos factores aún hoy siguen impulsando el avance de los SIG. El abaratamiento de la tecnología es la cuarta etapa.",
+    fuente: "Presentación Unidad 1 · 4. Revisión histórica y evolución de los SIG",
+    importante: true,
+    origen: "clase",
+  },
+  {
+    id: "r-symap-grid",
+    unidad: 1,
+    tema: "Evolución",
+    tipo: "unica",
+    enunciado: "En Harvard se desarrollaron SYMAP (1968) y GRID. ¿Qué enfoque inicia cada uno?",
+    opciones: ["SYMAP: vectorial · GRID: raster (información almacenada como cuadrículas)", "SYMAP: raster · GRID: vectorial", "Ambos son raster", "Ambos son topológicos"],
+    correctas: [0],
+    explicacion: "Línea de la fundación: CGIS de Roger Tomlinson, “el padre del SIG” (Canadá) → DIME 1967 (datos vectoriales topológicos) → SYMAP 1968 → GRID 1969.",
+    fuente: "Unidad 1 · Evolución de los SIG, pág. 6 · Presentación Unidad 1",
+    importante: true,
+  },
+  {
+    id: "c-motor-sig",
+    unidad: 1,
+    tema: "Componentes",
+    tipo: "multiple",
+    enunciado: "En la presentación, ¿quiénes forman “el motor del SIG”?",
+    opciones: ["Usuarios", "Diseñadores", "Beneficiarios", "Proveedores de satélites", "Fabricantes de hardware"],
+    correctas: [0, 1, 2],
+    explicacion: "La tecnología y los datos son completamente inertes sin el personal adecuado.",
+    fuente: "Presentación Unidad 1 · Personal",
+    importante: true,
+    origen: "clase",
+  },
+  {
+    id: "c-personal-perfiles",
+    unidad: 1,
+    tema: "Componentes",
+    tipo: "multiple",
+    enunciado: "Sobre las personas en un SIG, marcá lo correcto según la presentación.",
+    opciones: ["La tecnología y los datos son completamente inertes sin el personal adecuado", "Hay distintos perfiles: diseñan la arquitectura, administran la base de datos y aplican el SIG a problemas reales", "La visualización es fundamental para ofrecer funcionalidades SIG a usuarios finales sin perfil técnico (tomadores de decisiones, ciudadanos)", "Un SIG bien instalado funciona sin personas"],
+    correctas: [0, 1, 2],
+    explicacion: "Coincide con el apunte: sin gente, los datos se desactualizan y el hardware no se usa en todo su potencial.",
+    fuente: "Presentación Unidad 1 · Personal",
+    importante: true,
+    origen: "clase",
+  },
+  {
+    id: "c-cruce-calles",
+    unidad: 2,
+    tema: "Modelo geográfico",
+    tipo: "unica",
+    enunciado: "EJERCICIO — En el cruce de dos calles, un mismo punto pertenece a las dos, y en un descampado hay puntos que no pertenecen a ninguna. ¿Qué modelo geográfico admite ambas situaciones?",
+    opciones: ["Entidades discretas", "Campos escalares", "Campos vectoriales", "Ninguno"],
+    correctas: [0],
+    explicacion: "En un campo cada punto tiene exactamente un valor. En entidades discretas el espacio está vacío y se va rellenando con entidades: puede haber puntos sin entidad o con varias.",
+    fuente: "Unidad 2 (parte 1) · diapositiva 25 · Anotaciones de clase",
+    origen: "clase",
+  },
+  {
+    id: "c-compresion",
+    unidad: 2,
+    tema: "Almacenamiento raster",
+    tipo: "multiple",
+    enunciado: "Sobre la compresión de datos raster, marcá lo correcto.",
+    opciones: ["Se usa porque listar cada valor de la matriz es ineficiente", "Hay técnicas con pérdida y sin pérdida de información", "El formato JPG es un ejemplo de compresión con pérdida", "Toda compresión pierde información"],
+    correctas: [0, 1, 2],
+    explicacion: "Las técnicas sin pérdida permiten recuperar exactamente los valores originales.",
+    fuente: "Unidad 2 (parte 2) · diapositiva 7 · Anotaciones de clase",
+    origen: "clase",
+  },
   /* ─────────────── Repaso diapositiva por diapositiva ─────────────── */
+  {
+    id: "r-def-modelo",
+    unidad: 1,
+    tema: "Concepto",
+    tipo: "unica",
+    enunciado: "En Definiciones, un SIG es “un modelo informatizado del mundo real…”. ¿Cómo sigue esa definición?",
+    opciones: ["Descrito en un sistema de referencia ligado a la Tierra, establecido para satisfacer necesidades de información específicas respondiendo a un conjunto de preguntas concreto", "Descrito sin sistema de referencia, para guardar cualquier tipo de dato", "Formado solo por imágenes satelitales para producir mapas impresos", "Establecido para reemplazar la cartografía en papel"],
+    correctas: [0],
+    explicacion: "Es la definición de Rodríguez Pascual (1993). Aronoff (1989) lo define como un conjunto de procedimientos manuales o computarizados usado para almacenar y tratar datos referenciados geográficamente.",
+    fuente: "Unidad 1 · Definiciones, pág. 2",
+  },
+  {
+    id: "r-dime-topologia",
+    unidad: 1,
+    tema: "Evolución",
+    tipo: "vf",
+    enunciado: "DIME (Dual Independent Map Encoding), creado en 1967 en Estados Unidos, aportó ideas y soluciones para desarrollar y mejorar las estructuras topológicas de datos vectoriales.",
+    opciones: vf,
+    correctas: [V],
+    explicacion: "Fue uno de los primeros intentos de resolver los problemas planteados por el CGIS. En la Unidad 2 vuelve a aparecer como estructura topológica.",
+    fuente: "Unidad 1 · Evolución de los SIG, pág. 6",
+  },
   {
     id: "r-sig-generico",
     unidad: 1,
@@ -2345,7 +2583,7 @@ const banco: Pregunta[] = [
     enunciado: "La etapa ligada al desarrollo industrial de los SIG y a su adquisición por numerosas instituciones para gestionar la información territorial es la:",
     opciones: ["Etapa inicial", "Segunda etapa", "Tercera etapa", "Cuarta etapa"],
     correctas: [2],
-    explicacion: "Inicial: primeros intentos. Segunda: impulso tecnológico de los 70. Tercera: desarrollo industrial. Cuarta: abaratamiento y acceso de usuarios.",
+    explicacion: "Inicial: primeros intentos de desarrollo. Segunda: impulso tecnológico de la década de 1970. Tercera: desarrollo industrial y adquisición por instituciones. Cuarta: abaratamiento de la tecnología.",
     fuente: "Unidad 1 · 2. Revisión histórica, pág. 4",
   },
   {
@@ -2447,6 +2685,7 @@ const banco: Pregunta[] = [
     correctas: [2],
     explicacion: "El de almacenamiento es de bajo nivel, inherente a la naturaleza informática del SIG. El geográfico es el de alto nivel.",
     fuente: "Unidad 2 (parte 1) · diapositiva 18",
+    importante: true,
   },
   {
     id: "r-mayor-abstraccion",
@@ -2458,6 +2697,7 @@ const banco: Pregunta[] = [
     correctas: [0],
     explicacion: "El geográfico es el modelo conceptual de la realidad y su comportamiento: alto nivel.",
     fuente: "Unidad 2 (parte 1) · diapositiva 18",
+    importante: true,
   },
   {
     id: "r-def-representacion",
@@ -2684,6 +2924,17 @@ const banco: Pregunta[] = [
     fuente: "Unidad 2 (parte 2) · diapositivas 15 y 17",
   },
   {
+    id: "r-bd-espaciales",
+    unidad: 2,
+    tema: "Archivos y bases de datos",
+    tipo: "multiple",
+    enunciado: "¿Cuáles figuran en el apunte como bases de datos para almacenar datos vectoriales?",
+    opciones: ["Oracle Spatial", "SQL Server (2008)", "PostgreSQL (PostGIS)", "SpatiaLite (SQLite)", "MongoDB (NoSQL)", "GeoTIFF", "KML"],
+    correctas: [0, 1, 2, 3, 4],
+    explicacion: "GeoTIFF y KML son archivos, no bases de datos. Para raster el apunte menciona PostgreSQL (PostGIS), Rasterlite (SQLite) y Oracle (GeoRaster).",
+    fuente: "Unidad 2 (parte 2) · diapositivas 16 y 18",
+  },
+  {
     id: "r-formatos-raster",
     unidad: 2,
     tema: "Formatos",
@@ -2748,6 +2999,17 @@ const banco: Pregunta[] = [
     correctas: [0],
     explicacion: "Su esquema incluye geometry_columns (metadatos de columnas GEOMETRY) y spatial_ref_sys (catálogo de SRSs).",
     fuente: "Unidad 2 (parte 2) · diapositivas 33-34",
+  },
+  {
+    id: "r-geodesia-def",
+    unidad: 3,
+    tema: "Geodesia y cartografía",
+    tipo: "unica",
+    enunciado: "¿Qué estudia la geodesia?",
+    opciones: ["La forma y las dimensiones de la Tierra", "La creación, edición y análisis de mapas", "Las relaciones topológicas entre entidades", "La reflectancia de las imágenes satelitales"],
+    correctas: [0],
+    explicacion: "La creación, edición y análisis de mapas es la cartografía. Sus tipos son geodesia geométrica, geodesia física y astronomía geodésica.",
+    fuente: "Unidad 3 · diapositiva 3",
   },
   {
     id: "r-edicion",
@@ -2906,6 +3168,7 @@ const banco: Pregunta[] = [
     correctas: [0],
     explicacion: "El EPSG Geodetic Dataset identifica cada CRS sin ambigüedades y define las reproyecciones entre ellos.",
     fuente: "Unidad 3 · diapositivas 63-64",
+    importante: true,
   },
   {
     id: "r-epsg-4326",
@@ -2964,6 +3227,17 @@ const banco: Pregunta[] = [
     fuente: "Unidad 3 · diapositiva 75",
   },
   {
+    id: "r-mismo-punto",
+    unidad: 3,
+    tema: "Marcos en Argentina",
+    tipo: "vf",
+    enunciado: "La UTN FRRe tiene coordenadas distintas en EPSG:4326 (-27,45; -58,98), en Web Mercator EPSG:3857 y en POSGAR 98 faja 5 (5.600.911; 6.963.944), aunque se trata del mismo punto.",
+    opciones: vf,
+    correctas: [V],
+    explicacion: "Las coordenadas dependen del CRS: en 4326 son grados de latitud y longitud, y en 3857 o POSGAR 98 faja 5 son metros proyectados.",
+    fuente: "Unidad 3 · diapositiva 79",
+  },
+  {
     id: "r-posgar-inchauspe",
     unidad: 3,
     tema: "Marcos en Argentina",
@@ -2977,11 +3251,6 @@ const banco: Pregunta[] = [
   },
 ];
 
-/**
- * Banco en orden fijo: primero la Unidad 1, después la 2 y la 3 (respetando el orden del archivo
- * dentro de cada unidad). La posición define el número de la pregunta (Nº 1, Nº 2…).
- */
-export const preguntas: Pregunta[] = [...banco].sort((a, b) => a.unidad - b.unidad);
 
-/** Número fijo de cada pregunta según su id. */
-export const NUMERO: Record<string, number> = Object.fromEntries(preguntas.map((p, i) => [p.id, i + 1]));
+/** Todas las preguntas. El orden en que se responden lo define el recorrido (src/lib/recorrido.ts). */
+export const preguntas: Pregunta[] = banco;
