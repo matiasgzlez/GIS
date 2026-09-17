@@ -30,6 +30,9 @@ const inicioDe = (solo: boolean): Paso => ({ pagina: 0, pregunta: solo ? 0 : nul
 const claveDe = (m: Modo, solo: boolean) => (solo ? `${m}-preguntas` : m);
 type Grupo = "lectura" | "preguntas";
 type Respuestas = Record<string, number[]>;
+/** Páginas salteadas, por su clave "documento-página". */
+type Salteadas = Record<string, true>;
+const claveP = (p: Pagina) => `${p.doc}-${p.n}`;
 
 const paginasDe = (modo: Modo, solo = false): Pagina[] =>
   (modo === "todo" ? RECORRIDO : RECORRIDO.filter((p) => `u${p.unidad}` === modo)).filter(
@@ -89,6 +92,7 @@ export default function Quiz() {
   const [paso, setPaso] = useState<Paso>(inicioDe(false));
   // Las respuestas de "leyendo" y de "solo preguntas" se guardan por separado
   const [respuestasPor, setRespuestasPor] = useState<Record<Grupo, Respuestas>>({ lectura: {}, preguntas: {} });
+  const [salteadasPor, setSalteadasPor] = useState<Record<Grupo, Salteadas>>({ lectura: {}, preguntas: {} });
   const [posiciones, setPosiciones] = useState<Record<string, Paso>>({});
   const [cargado, setCargado] = useState(false);
   const [marcadas, setMarcadas] = useState<number[]>([]);
@@ -128,6 +132,7 @@ export default function Quiz() {
       const g = JSON.parse(localStorage.getItem(GUARDADO) ?? "null");
       if (g?.respuestasPor) setRespuestasPor(g.respuestasPor);
       else if (g?.respuestas) setRespuestasPor({ lectura: g.respuestas, preguntas: {} });
+      if (g?.salteadasPor) setSalteadasPor(g.salteadasPor);
       if (g?.posiciones) setPosiciones(g.posiciones);
     } catch {
       /* sin avance guardado */
@@ -138,11 +143,11 @@ export default function Quiz() {
   useEffect(() => {
     if (!cargado) return;
     try {
-      localStorage.setItem(GUARDADO, JSON.stringify({ respuestasPor, posiciones }));
+      localStorage.setItem(GUARDADO, JSON.stringify({ respuestasPor, salteadasPor, posiciones }));
     } catch {
       /* navegador sin almacenamiento */
     }
-  }, [cargado, respuestasPor, posiciones]);
+  }, [cargado, respuestasPor, salteadasPor, posiciones]);
 
   const grupo: Grupo = solo ? "preguntas" : "lectura";
   const respuestas = respuestasPor[grupo];
@@ -151,6 +156,17 @@ export default function Quiz() {
     [],
   );
   const clave = claveDe(modo, solo);
+  const salteadas = salteadasPor[grupo];
+  const marcarSalteada = useCallback(
+    (clavePagina: string, saltear: boolean) =>
+      setSalteadasPor((prev) => {
+        const nuevas = { ...prev[grupo] };
+        if (saltear) nuevas[clavePagina] = true;
+        else delete nuevas[clavePagina];
+        return { ...prev, [grupo]: nuevas };
+      }),
+    [grupo],
+  );
 
   const paginas = repaso ?? paginasDe(modo, solo);
   const pagina = paginas[paso.pagina];
@@ -161,7 +177,8 @@ export default function Quiz() {
   const acerto = actual ? esCorrecta(actual, respuesta) : false;
   const conMedia = Boolean(actual?.imagen || actual?.codigo);
 
-  const delRecorrido = paginas.flatMap((p) => p.preguntas);
+  const delRecorrido = paginas.filter((p) => !salteadas[claveP(p)]).flatMap((p) => p.preguntas);
+  const salteadasAqui = paginas.filter((p) => salteadas[claveP(p)]).length;
   const aciertos = delRecorrido.filter((p) => esCorrecta(p, respuestas[p.id])).length;
   let racha = 0;
   const respondidas = delRecorrido.filter((p) => respuestas[p.id]);
@@ -197,12 +214,13 @@ export default function Quiz() {
   const avanzar = useCallback(() => {
     if (!pagina) return;
     // Al volver a responder después de releer, sigue desde la primera sin contestar
+    if (salteadas[claveP(pagina)]) marcarSalteada(claveP(pagina), false);
     const pendiente = pagina.preguntas.findIndex((q) => !respuestas[q.id]);
     const siguiente = paso.pregunta === null ? Math.max(pendiente, 0) : paso.pregunta + 1;
     if (siguiente < pagina.preguntas.length) ir({ pagina: paso.pagina, pregunta: siguiente });
     else if (paso.pagina + 1 < paginas.length) ir({ pagina: paso.pagina + 1, pregunta: solo ? 0 : null });
     else terminar();
-  }, [pagina, paso, paginas.length, respuestas, solo, ir, terminar]);
+  }, [pagina, paso, paginas.length, respuestas, salteadas, marcarSalteada, solo, ir, terminar]);
 
   const retroceder = useCallback(() => {
     if (solo) {
@@ -215,6 +233,14 @@ export default function Quiz() {
       ir({ pagina: paso.pagina - 1, pregunta: anterior.preguntas.length ? anterior.preguntas.length - 1 : null });
     }
   }, [solo, paso, paginas, ir]);
+
+  /** Saltea la página y sus preguntas: no cuentan en el resultado. */
+  const saltear = useCallback(() => {
+    if (!pagina) return;
+    marcarSalteada(claveP(pagina), true);
+    if (paso.pagina + 1 < paginas.length) ir({ pagina: paso.pagina + 1, pregunta: solo ? 0 : null });
+    else terminar();
+  }, [pagina, paso.pagina, paginas.length, marcarSalteada, solo, ir, terminar]);
 
   const tocar = useCallback(
     (original: number) => {
@@ -252,6 +278,11 @@ export default function Quiz() {
     cambiarRespuestas(s ? "preguntas" : "lectura", (prev) =>
       Object.fromEntries(Object.entries(prev).filter(([id]) => !ids.has(id))),
     );
+    setSalteadasPor((prev) => {
+      const ids = new Set(paginasDe(m).map(claveP));
+      const g: Grupo = s ? "preguntas" : "lectura";
+      return { ...prev, [g]: Object.fromEntries(Object.entries(prev[g]).filter(([k]) => !ids.has(k))) };
+    });
     setPosiciones((prev) => {
       const nuevas = { ...prev };
       // Reiniciar el recorrido completo reinicia también cada unidad
@@ -287,6 +318,7 @@ export default function Quiz() {
         return;
       }
       if (e.key === "ArrowLeft") return retroceder();
+      if (e.key === "s" || e.key === "S") return saltear();
       if (!actual) {
         if (e.key === "Enter" || e.key === "ArrowRight") {
           e.preventDefault();
@@ -304,7 +336,7 @@ export default function Quiz() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [estado, pagina, actual, orden, respondida, zoom, tocar, confirmar, avanzar, retroceder]);
+  }, [estado, pagina, actual, orden, respondida, zoom, tocar, confirmar, avanzar, retroceder, saltear]);
 
   const esUltimaPagina = paso.pagina + 1 >= paginas.length;
   const textoSiguiente = (quedanPreguntas: boolean) =>
@@ -358,6 +390,9 @@ export default function Quiz() {
             ←<span className="hidden sm:inline"> Anterior</span>
           </button>
         )}
+        <button onClick={saltear} className="transition-opacity hover:opacity-70" title="Saltear esta página y sus preguntas (S)">
+          Saltear<span className="hidden sm:inline"> página</span> ⇥
+        </button>
         <span className="font-bold">{aciertos} ✓</span>
       </div>
     </div>
@@ -538,6 +573,12 @@ export default function Quiz() {
                 >
                   Ampliar página
                 </button>
+                <button
+                  onClick={saltear}
+                  className="sombra font-mono text-xs uppercase tracking-[0.16em] transition-opacity hover:opacity-70"
+                >
+                  Saltear esta página ⇥
+                </button>
               </aside>
             </div>
           </motion.section>
@@ -707,13 +748,23 @@ export default function Quiz() {
                   </span>
                 </div>
 
+                {salteadasAqui > 0 && (
+                  <p className="mt-3 font-mono text-xs uppercase tracking-[0.14em]">
+                    {salteadasAqui === 1 ? "1 página salteada" : `${salteadasAqui} páginas salteadas`}: sus preguntas no cuentan
+                  </p>
+                )}
+
                 <h2 className="mt-6 font-black leading-[0.95] tracking-[-0.03em] text-[clamp(32px,5vw,60px)]">
-                  {nota >= 90
+                  {delRecorrido.length === 0
+                    ? "Salteaste todas las páginas."
+                    : nota >= 90
                     ? "Listo para el parcial."
                     : nota >= 60
                       ? "Aprobado. Afiná lo que falló."
                       : "Todavía no. Repasá y volvé."}{" "}
-                  <span style={{ color: nota >= 60 ? VERDE : "var(--color-accent)" }}>{nota}%</span>
+                  {delRecorrido.length > 0 && (
+                    <span style={{ color: nota >= 60 ? VERDE : "var(--color-accent)" }}>{nota}%</span>
+                  )}
                 </h2>
 
                 <div className="mt-10 flex flex-col gap-4">

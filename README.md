@@ -11,6 +11,7 @@ App para estudiar el primer parcial de **Sistemas de Información Geográfica** 
 - **★ Importante:** las preguntas de los temas marcados como importantes o "pregunta de parcial" en los apuntes de clase llevan esa marca.
 - **Avance guardado** en el navegador: cada recorrido retoma donde quedó, con opción de reiniciarlo.
 - **Todas las preguntas se responden marcando casillas y confirmando**, aunque tengan una sola respuesta correcta: la app no avisa cuántas hay que marcar. Cuenta como correcta solo si se marca exactamente la combinación. Las opciones tienen un orden fijo por pregunta.
+- **Saltear:** si una página no interesa, se saltea con su botón (o con la tecla `S`) junto con sus preguntas, que no cuentan en el resultado. Al volver a entrar a responderla, deja de estar salteada.
 - **Releer:** desde cualquier pregunta se vuelve a la página y, al responder de nuevo, se sigue desde la primera pregunta sin contestar.
 - **Ejercicios prácticos:** escalas, coordenadas y áreas en raster, orden BSQ/BIL/BIP, faja Gauss-Krüger, zona UTM, semieje del elipsoide, operaciones de generalización, tipos de variables, clases, cuartiles y tipos de mapas temáticos.
 - **Figuras de los PDFs** en las preguntas que las necesitan. Las páginas y las figuras se amplían con un toque.
@@ -28,6 +29,7 @@ Las 24 preguntas que salen de lo visto en clase, y no de los PDFs, llevan la eti
 | `Enter` | Pasar a las preguntas, confirmar o seguir |
 | `→` | Seguir (en una página o en una pregunta ya respondida) |
 | `←` | Volver a la pregunta o página anterior |
+| `S` | Saltear la página y sus preguntas |
 | `Esc` | Cerrar la imagen ampliada |
 
 ## Estructura
