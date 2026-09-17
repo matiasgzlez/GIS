@@ -8,7 +8,8 @@ App para estudiar el primer parcial de **Sistemas de Información Geográfica** 
 - **307 preguntas** (U1: 39, U2: 94, U3: 64, U4: 110), cada una después de la página de donde sale. Se nombran por su lugar: por ejemplo, *U2 P1 · Diap. 18 · Pregunta 2*.
 - **Recorrido completo o por unidad:** desde el inicio se elige recorrer todo o solo una de las cuatro unidades.
 - **Solo preguntas:** para cuando ya se estudió, cada unidad (o todas) se puede practicar sin ver las diapositivas, directo a las preguntas con sus figuras. Tiene su propio avance y sus propias respuestas.
-- **★ Importante:** las preguntas de los temas marcados como importantes o "pregunta de parcial" en los apuntes de clase llevan esa marca.
+- **★ Solo las importantes:** practicar únicamente las preguntas marcadas, de una unidad o de todas, también con su propio avance y sus propias respuestas.
+- **★ Importante:** las preguntas de los temas marcados como importantes o "pregunta de parcial" en los apuntes de clase llevan esa marca. Hoy son 52 (U1: 26, U2: 3, U3: 6, U4: 17).
 - **Avance guardado** en el navegador: cada recorrido retoma donde quedó, con opción de reiniciarlo.
 - **Todas las preguntas se responden marcando casillas y confirmando**, aunque tengan una sola respuesta correcta: la app no avisa cuántas hay que marcar. Cuenta como correcta solo si se marca exactamente la combinación. Las opciones tienen un orden fijo por pregunta.
 - **Saltear:** si una página no interesa, se saltea con su botón (o con la tecla `S`) junto con sus preguntas, que no cuentan en el resultado. Al volver a entrar a responderla, deja de estar salteada.

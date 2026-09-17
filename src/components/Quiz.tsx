@@ -24,20 +24,24 @@ const MODOS: { modo: Modo; titulo: string }[] = [
 ];
 
 const GUARDADO = "gis-recorrido-v1";
-/** En "solo preguntas" no se muestran las páginas: se arranca directo en la primera pregunta. */
+/** Cómo se estudia: leyendo las páginas, solo las preguntas o solo las importantes. */
+type Vista = "lectura" | "preguntas" | "importantes";
+/** Sin lectura se arranca directo en la primera pregunta. */
 const inicioDe = (solo: boolean): Paso => ({ pagina: 0, pregunta: solo ? 0 : null });
-/** Cada forma de estudiar guarda su propia posición. */
-const claveDe = (m: Modo, solo: boolean) => (solo ? `${m}-preguntas` : m);
-type Grupo = "lectura" | "preguntas";
+/** Cada forma de estudiar guarda su propia posición y sus propias respuestas. */
+const claveDe = (m: Modo, vista: Vista) => (vista === "lectura" ? m : `${m}-${vista}`);
+type Grupo = Vista;
 type Respuestas = Record<string, number[]>;
 /** Páginas salteadas, por su clave "documento-página". */
 type Salteadas = Record<string, true>;
 const claveP = (p: Pagina) => `${p.doc}-${p.n}`;
 
-const paginasDe = (modo: Modo, solo = false): Pagina[] =>
-  (modo === "todo" ? RECORRIDO : RECORRIDO.filter((p) => `u${p.unidad}` === modo)).filter(
-    (p) => !solo || p.preguntas.length > 0,
-  );
+const paginasDe = (modo: Modo, vista: Vista = "lectura"): Pagina[] => {
+  const suyas = modo === "todo" ? RECORRIDO : RECORRIDO.filter((p) => `u${p.unidad}` === modo);
+  if (vista === "lectura") return suyas;
+  const paginas = vista === "importantes" ? suyas.map((p) => ({ ...p, preguntas: p.preguntas.filter((q) => q.importante) })) : suyas;
+  return paginas.filter((p) => p.preguntas.length > 0);
+};
 
 /** Posición de la pregunta actual dentro de todas las del recorrido (0 = la primera). */
 const indicePregunta = (paginas: Pagina[], paso: Paso) =>
@@ -87,12 +91,14 @@ export default function Quiz() {
   const [modo, setModo] = useState<Modo>("todo");
   /** Repaso de las falladas: las mismas páginas, solo con esas preguntas. */
   const [repaso, setRepaso] = useState<Pagina[] | null>(null);
-  /** true: solo preguntas, sin mostrar las páginas. */
-  const [solo, setSolo] = useState(false);
+  const [vista, setVista] = useState<Vista>("lectura");
+  /** Sin lectura: se va directo a las preguntas. */
+  const solo = vista !== "lectura";
   const [paso, setPaso] = useState<Paso>(inicioDe(false));
-  // Las respuestas de "leyendo" y de "solo preguntas" se guardan por separado
-  const [respuestasPor, setRespuestasPor] = useState<Record<Grupo, Respuestas>>({ lectura: {}, preguntas: {} });
-  const [salteadasPor, setSalteadasPor] = useState<Record<Grupo, Salteadas>>({ lectura: {}, preguntas: {} });
+  // Cada forma de estudiar guarda sus respuestas y sus salteos por separado
+  const vacio = { lectura: {}, preguntas: {}, importantes: {} };
+  const [respuestasPor, setRespuestasPor] = useState<Record<Grupo, Respuestas>>(vacio);
+  const [salteadasPor, setSalteadasPor] = useState<Record<Grupo, Salteadas>>(vacio);
   const [posiciones, setPosiciones] = useState<Record<string, Paso>>({});
   const [cargado, setCargado] = useState(false);
   const [marcadas, setMarcadas] = useState<number[]>([]);
@@ -130,9 +136,9 @@ export default function Quiz() {
   useEffect(() => {
     try {
       const g = JSON.parse(localStorage.getItem(GUARDADO) ?? "null");
-      if (g?.respuestasPor) setRespuestasPor(g.respuestasPor);
-      else if (g?.respuestas) setRespuestasPor({ lectura: g.respuestas, preguntas: {} });
-      if (g?.salteadasPor) setSalteadasPor(g.salteadasPor);
+      if (g?.respuestasPor) setRespuestasPor({ ...vacio, ...g.respuestasPor });
+      else if (g?.respuestas) setRespuestasPor({ ...vacio, lectura: g.respuestas });
+      if (g?.salteadasPor) setSalteadasPor({ ...vacio, ...g.salteadasPor });
       if (g?.posiciones) setPosiciones(g.posiciones);
     } catch {
       /* sin avance guardado */
@@ -149,13 +155,13 @@ export default function Quiz() {
     }
   }, [cargado, respuestasPor, salteadasPor, posiciones]);
 
-  const grupo: Grupo = solo ? "preguntas" : "lectura";
+  const grupo: Grupo = vista;
   const respuestas = respuestasPor[grupo];
   const cambiarRespuestas = useCallback(
     (g: Grupo, f: (prev: Respuestas) => Respuestas) => setRespuestasPor((prev) => ({ ...prev, [g]: f(prev[g]) })),
     [],
   );
-  const clave = claveDe(modo, solo);
+  const clave = claveDe(modo, vista);
   const salteadas = salteadasPor[grupo];
   const marcarSalteada = useCallback(
     (clavePagina: string, saltear: boolean) =>
@@ -168,7 +174,7 @@ export default function Quiz() {
     [grupo],
   );
 
-  const paginas = repaso ?? paginasDe(modo, solo);
+  const paginas = repaso ?? paginasDe(modo, vista);
   const pagina = paginas[paso.pagina];
   const actual = pagina && paso.pregunta !== null ? pagina.preguntas[paso.pregunta] : undefined;
   const orden = useMemo(() => (actual ? ordenDe(actual) : []), [actual]);
@@ -177,13 +183,18 @@ export default function Quiz() {
   const acerto = actual ? esCorrecta(actual, respuesta) : false;
   const conMedia = Boolean(actual?.imagen || actual?.codigo);
 
-  const delRecorrido = paginas.filter((p) => !salteadas[claveP(p)]).flatMap((p) => p.preguntas);
-  const salteadasAqui = paginas.filter((p) => salteadas[claveP(p)]).length;
+  /** Aciertos y resultado se cuentan siempre sobre todo el recorrido elegido, no sobre el repaso. */
+  const delRecorrido = paginasDe(modo, vista)
+    .filter((p) => !salteadas[claveP(p)])
+    .flatMap((p) => p.preguntas);
+  const salteadasAqui = paginasDe(modo, vista).filter((p) => salteadas[claveP(p)]).length;
+  /** Preguntas de lo que se está recorriendo ahora (en el repaso, solo las falladas). */
+  const enCurso = paginas.filter((p) => !salteadas[claveP(p)]).flatMap((p) => p.preguntas);
   const aciertos = delRecorrido.filter((p) => esCorrecta(p, respuestas[p.id])).length;
   let racha = 0;
   const respondidas = delRecorrido.filter((p) => respuestas[p.id]);
   for (let i = respondidas.length - 1; i >= 0 && esCorrecta(respondidas[i], respuestas[respondidas[i].id]); i--) racha++;
-  const totalPreguntas = delRecorrido.length;
+  const totalPreguntas = enCurso.length;
   const avance =
     estado === "final" || !pagina
       ? 1
@@ -258,13 +269,13 @@ export default function Quiz() {
     cambiarRespuestas(grupo, (prev) => ({ ...prev, [actual.id]: [...marcadas] }));
   }, [actual, respondida, marcadas, grupo, cambiarRespuestas]);
 
-  const empezar = (m: Modo, s: boolean) => {
-    const guardada = posiciones[claveDe(m, s)] ?? inicioDe(s);
+  const empezar = (m: Modo, v: Vista) => {
+    const guardada = posiciones[claveDe(m, v)] ?? inicioDe(v !== "lectura");
     setModo(m);
-    setSolo(s);
+    setVista(v);
     setRepaso(null);
     setMarcadas([]);
-    if (guardada.pagina >= paginasDe(m, s).length) {
+    if (guardada.pagina >= paginasDe(m, v).length) {
       setEstado("final");
     } else {
       setPaso(guardada);
@@ -273,20 +284,20 @@ export default function Quiz() {
     window.scrollTo({ top: 0 });
   };
 
-  const reiniciar = (m: Modo, s: boolean) => {
+  const reiniciar = (m: Modo, v: Vista) => {
     const ids = new Set(paginasDe(m).flatMap((p) => p.preguntas.map((q) => q.id)));
-    cambiarRespuestas(s ? "preguntas" : "lectura", (prev) =>
+    cambiarRespuestas(v, (prev) =>
       Object.fromEntries(Object.entries(prev).filter(([id]) => !ids.has(id))),
     );
     setSalteadasPor((prev) => {
       const ids = new Set(paginasDe(m).map(claveP));
-      const g: Grupo = s ? "preguntas" : "lectura";
+      const g: Grupo = v;
       return { ...prev, [g]: Object.fromEntries(Object.entries(prev[g]).filter(([k]) => !ids.has(k))) };
     });
     setPosiciones((prev) => {
       const nuevas = { ...prev };
       // Reiniciar el recorrido completo reinicia también cada unidad
-      for (const k of m === "todo" ? (["todo", "u1", "u2", "u3", "u4"] as Modo[]) : [m]) delete nuevas[claveDe(k, s)];
+      for (const k of m === "todo" ? (["todo", "u1", "u2", "u3", "u4"] as Modo[]) : [m]) delete nuevas[claveDe(k, v)];
       return nuevas;
     });
   };
@@ -382,7 +393,11 @@ export default function Quiz() {
             ★ Importante
           </span>
         )}
-        {solo && !repaso && <span className="hidden opacity-80 lg:inline">Solo preguntas</span>}
+        {solo && !repaso && (
+          <span className="hidden opacity-80 lg:inline">
+            {vista === "importantes" ? "Solo importantes" : "Solo preguntas"}
+          </span>
+        )}
       </div>
       <div className="flex items-center gap-4">
         {(paso.pagina > 0 || paso.pregunta !== null) && (
@@ -442,8 +457,8 @@ export default function Quiz() {
                   titulo="Recorrido completo"
                   paginas={paginasDe("todo")}
                   posicion={posiciones.todo}
-                  onEmpezar={() => empezar("todo", false)}
-                  onReiniciar={() => reiniciar("todo", false)}
+                  onEmpezar={() => empezar("todo", "lectura")}
+                  onReiniciar={() => reiniciar("todo", "lectura")}
                   destacada
                 />
                 <div className="grid grid-cols-2 gap-3">
@@ -453,29 +468,36 @@ export default function Quiz() {
                       titulo={titulo}
                       paginas={paginasDe(m)}
                       posicion={posiciones[m]}
-                      onEmpezar={() => empezar(m, false)}
-                      onReiniciar={() => reiniciar(m, false)}
+                      onEmpezar={() => empezar(m, "lectura")}
+                      onReiniciar={() => reiniciar(m, "lectura")}
                     />
                   ))}
                 </div>
 
                 {/* Práctica directa: solo las preguntas, con sus figuras */}
-                <span className="sombra mt-3 font-mono text-xs font-bold uppercase tracking-[0.2em]">
-                  Solo preguntas · sin diapositivas
-                </span>
-                <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
-                  {([{ modo: "todo" as Modo, titulo: "Todas" }, ...MODOS]).map(({ modo: m, titulo }) => (
-                    <TarjetaModo
-                      key={m}
-                      titulo={titulo.replace("Unidad ", "U")}
-                      paginas={paginasDe(m, true)}
-                      posicion={posiciones[claveDe(m, true)]}
-                      onEmpezar={() => empezar(m, true)}
-                      onReiniciar={() => reiniciar(m, true)}
-                      solo
-                    />
-                  ))}
-                </div>
+                {(
+                  [
+                    { vista: "preguntas" as Vista, titulo: "Solo preguntas · sin diapositivas" },
+                    { vista: "importantes" as Vista, titulo: "★ Solo las importantes" },
+                  ]
+                ).map(({ vista: v, titulo }) => (
+                  <div key={v} className="contents">
+                    <span className="sombra mt-3 font-mono text-xs font-bold uppercase tracking-[0.2em]">{titulo}</span>
+                    <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
+                      {([{ modo: "todo" as Modo, titulo: "Todas" }, ...MODOS]).map(({ modo: m, titulo: t }) => (
+                        <TarjetaModo
+                          key={m}
+                          titulo={t.replace("Unidad ", "U")}
+                          paginas={paginasDe(m, v)}
+                          posicion={posiciones[claveDe(m, v)]}
+                          onEmpezar={() => empezar(m, v)}
+                          onReiniciar={() => reiniciar(m, v)}
+                          solo
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </motion.section>
@@ -733,7 +755,7 @@ export default function Quiz() {
             <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
               <div className="min-w-0 rounded-2xl bg-white/90 p-6 sm:p-8 lg:sticky lg:top-12 lg:self-start">
                 <span className="font-mono text-sm uppercase tracking-[0.22em]">
-                  {repaso ? "Resultado del repaso" : "Resultado"}
+                  {repaso ? "Resultado después del repaso" : "Resultado"}
                 </span>
 
                 <div className="mt-3 flex items-baseline gap-3">
@@ -800,7 +822,7 @@ export default function Quiz() {
                 {!repaso && (
                   <button
                     onClick={() => {
-                      reiniciar(modo, solo);
+                      reiniciar(modo, vista);
                       setPaso(inicioDe(solo));
                       setEstado("leyendo");
                     }}
