@@ -4,21 +4,21 @@ App para estudiar el primer parcial de **Sistemas de Información Geográfica** 
 
 ## Qué tiene
 
-- **Recorrido de lectura:** 189 páginas de los PDFs, en orden (U1: 14, U2: 103, U3: 72). Las portadas, índices, títulos de sección y fuentes se saltean. Las páginas sin preguntas quedan para leer.
-- **233 preguntas** (U1: 53, U2: 106, U3: 74), cada una después de la página de donde sale. Se nombran por su lugar: por ejemplo, *U2 P1 · Diap. 18 · Pregunta 2*.
-- **Recorrido completo o por unidad:** desde el inicio se elige recorrer todo o solo la Unidad 1, 2 o 3 (la 4 figura como próximamente).
+- **Recorrido de lectura:** 289 páginas de los PDFs, en orden (U1: 14, U2: 103, U3: 72, U4: 100). Las portadas, índices, títulos de sección y fuentes se saltean. Las páginas sin preguntas quedan para leer.
+- **307 preguntas** (U1: 39, U2: 94, U3: 64, U4: 110), cada una después de la página de donde sale. Se nombran por su lugar: por ejemplo, *U2 P1 · Diap. 18 · Pregunta 2*.
+- **Recorrido completo o por unidad:** desde el inicio se elige recorrer todo o solo una de las cuatro unidades.
 - **Solo preguntas:** para cuando ya se estudió, cada unidad (o todas) se puede practicar sin ver las diapositivas, directo a las preguntas con sus figuras. Tiene su propio avance y sus propias respuestas.
 - **★ Importante:** las preguntas de los temas marcados como importantes o "pregunta de parcial" en los apuntes de clase llevan esa marca.
 - **Avance guardado** en el navegador: cada recorrido retoma donde quedó, con opción de reiniciarlo.
 - **Todas las preguntas se responden marcando casillas y confirmando**, aunque tengan una sola respuesta correcta: la app no avisa cuántas hay que marcar. Cuenta como correcta solo si se marca exactamente la combinación. Las opciones tienen un orden fijo por pregunta.
 - **Releer:** desde cualquier pregunta se vuelve a la página y, al responder de nuevo, se sigue desde la primera pregunta sin contestar.
-- **17 ejercicios prácticos:** escalas, coordenadas y áreas en raster, orden BSQ/BIL/BIP, faja Gauss-Krüger, zona UTM y semieje del elipsoide.
+- **Ejercicios prácticos:** escalas, coordenadas y áreas en raster, orden BSQ/BIL/BIP, faja Gauss-Krüger, zona UTM, semieje del elipsoide, operaciones de generalización, tipos de variables, clases, cuartiles y tipos de mapas temáticos.
 - **Figuras de los PDFs** en las preguntas que las necesitan. Las páginas y las figuras se amplían con un toque.
 - **Progreso y racha:** barra con un avión que avanza por las páginas y contador de aciertos seguidos.
 - **Resultado final** con el porcentaje, el desglose por unidad y las preguntas para repasar. "Repasar las que fallé" vuelve a mostrar solo esas páginas con solo esas preguntas.
 - Pensada para la compu (cada pregunta entra en una pantalla sin scroll) y usable desde el celu.
 
-Las 27 preguntas que salen de lo visto en clase, y no de los PDFs, llevan la etiqueta **"Apunte de clase"** y están ubicadas después de la página del mismo tema.
+Las 24 preguntas que salen de lo visto en clase, y no de los PDFs, llevan la etiqueta **"Apunte de clase"** y están ubicadas después de la página del mismo tema.
 
 ## Atajos de teclado
 
@@ -75,11 +75,11 @@ Para que aparezca, su `id` tiene que estar en la página correspondiente de `src
 ["u2a", 37, ["u2-malla-coords", "e-raster-coord", "u2-ejemplo"]],
 ```
 
-Los documentos son `u1` (Unidad 1), `u2a` y `u2b` (Unidad 2, partes 1 y 2) y `u3` (Unidad 3). Para dejar una página solo para leer, su lista va vacía; para saltearla, se quita la línea.
+Los documentos son `u1` (Unidad 1), `u2a` y `u2b` (Unidad 2, partes 1 y 2) `u3` (Unidad 3) y `u4` y `u4c` (Unidad 4: diapositivas y cuadernillo *Conceptos cartográficos* del IGN). Para dejar una página solo para leer, su lista va vacía; para saltearla, se quita la línea.
 
 ## Regenerar las páginas
 
-Los PDFs de la cátedra no están en el repositorio. Si se agregan o quitan páginas del recorrido, con los cuatro PDFs en una carpeta:
+Los PDFs de la cátedra no están en el repositorio. Si se agregan o quitan páginas del recorrido, con los seis PDFs en una carpeta:
 
 ```bash
 pip install pymupdf
@@ -92,6 +92,8 @@ El script renderiza en `public/slides/` todas las páginas listadas en `src/lib/
 - `Unidad 2-Parte1-2026-V2.pdf`
 - `Unidad 2- parte2.pdf`
 - `Unidad 3.pdf`
+- `Unidad 4-2026.pdf`
+- `Conceptos_Cartograficos_def.pdf`
 
 ## Tecnologías
 
@@ -99,4 +101,4 @@ Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS 4 y Motion.
 
 ## Fuentes
 
-El contenido sale del material de la cátedra de Sistemas de Información Geográfica de UTN FRRe (Ing. Ilse Hodapp – Ing. Rodrigo Valdés): *Unidad 1 – Contenidos*, *Unidad 2 – Modelos para la información geográfica* (partes 1 y 2) y *Unidad 3 – Fundamentos cartográficos y geodésicos*, además de lo visto en clase. Es un proyecto de estudio sin fines comerciales.
+El contenido sale del material de la cátedra de Sistemas de Información Geográfica de UTN FRRe (Ing. Ilse Hodapp – Ing. Rodrigo Valdés): *Unidad 1 – Contenidos*, *Unidad 2 – Modelos para la información geográfica* (partes 1 y 2) y *Unidad 3 – Fundamentos cartográficos y geodésicos* y *Unidad 4 – Visualización de la información geográfica*, con el cuadernillo *Conceptos cartográficos* del IGN (España), además de lo visto en clase. Es un proyecto de estudio sin fines comerciales.

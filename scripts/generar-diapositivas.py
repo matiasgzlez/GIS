@@ -19,12 +19,14 @@ RAIZ = Path(__file__).resolve().parent.parent
 RECORRIDO = RAIZ / "src" / "lib" / "recorrido.ts"
 SALIDA_IMG = RAIZ / "public" / "slides"
 
-# documento: (archivo, zoom). Las hojas A4 de la U1 van con más zoom para leerlas bien.
+# documento: (archivo, zoom). Las hojas A4 (U1 y el cuadernillo del IGN) van con más zoom para leerlas bien.
 DOCS = {
     "u1": ("Unidad1-contenidos.pdf", 2.0),
     "u2a": ("Unidad 2-Parte1-2026-V2.pdf", 1.8),
     "u2b": ("Unidad 2- parte2.pdf", 1.8),
     "u3": ("Unidad 3.pdf", 1.8),
+    "u4": ("Unidad 4-2026.pdf", 1.8),
+    "u4c": ("Conceptos_Cartograficos_def.pdf", 2.0),
 }
 
 
@@ -34,7 +36,7 @@ def main():
     carpeta = Path(sys.argv[1]).expanduser()
 
     paginas = sorted(
-        {(d, int(n)) for d, n in re.findall(r'\["(u1|u2a|u2b|u3)", (\d+),', RECORRIDO.read_text(encoding="utf-8"))}
+        {(d, int(n)) for d, n in re.findall(r'\["(u1|u2a|u2b|u3|u4|u4c)", (\d+),', RECORRIDO.read_text(encoding="utf-8"))}
     )
 
     SALIDA_IMG.mkdir(parents=True, exist_ok=True)

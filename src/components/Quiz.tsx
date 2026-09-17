@@ -12,7 +12,7 @@ const VF = ["Verdadero", "Falso"];
 
 type Estado = "inicio" | "leyendo" | "final";
 /** Qué se recorre: todas las unidades o una sola. */
-type Modo = "todo" | "u1" | "u2" | "u3";
+type Modo = "todo" | "u1" | "u2" | "u3" | "u4";
 /** Dónde está parado: una página (pregunta null = leyéndola) o una de sus preguntas. */
 type Paso = { pagina: number; pregunta: number | null };
 
@@ -20,6 +20,7 @@ const MODOS: { modo: Modo; titulo: string }[] = [
   { modo: "u1", titulo: "Unidad 1" },
   { modo: "u2", titulo: "Unidad 2" },
   { modo: "u3", titulo: "Unidad 3" },
+  { modo: "u4", titulo: "Unidad 4" },
 ];
 
 const GUARDADO = "gis-recorrido-v1";
@@ -254,7 +255,7 @@ export default function Quiz() {
     setPosiciones((prev) => {
       const nuevas = { ...prev };
       // Reiniciar el recorrido completo reinicia también cada unidad
-      for (const k of m === "todo" ? (["todo", "u1", "u2", "u3"] as Modo[]) : [m]) delete nuevas[claveDe(k, s)];
+      for (const k of m === "todo" ? (["todo", "u1", "u2", "u3", "u4"] as Modo[]) : [m]) delete nuevas[claveDe(k, s)];
       return nuevas;
     });
   };
@@ -309,7 +310,7 @@ export default function Quiz() {
   const textoSiguiente = (quedanPreguntas: boolean) =>
     quedanPreguntas ? "Siguiente pregunta →" : esUltimaPagina ? "Ver resultado →" : "Siguiente página →";
 
-  const porUnidad = ([1, 2, 3] as Unidad[])
+  const porUnidad = ([1, 2, 3, 4] as Unidad[])
     .map((u) => {
       const lista = delRecorrido.filter((p) => p.unidad === u);
       return { u, total: lista.length, bien: lista.filter((p) => esCorrecta(p, respuestas[p.id])).length };
@@ -421,19 +422,13 @@ export default function Quiz() {
                       onReiniciar={() => reiniciar(m, false)}
                     />
                   ))}
-                  <div className="flex flex-col items-start rounded-xl border-2 border-dashed border-white bg-white/50 px-5 py-4">
-                    <span className="text-xl font-black uppercase tracking-tight opacity-60">Unidad 4</span>
-                    <span className="mt-1 font-mono text-[11px] uppercase tracking-[0.14em] opacity-60">
-                      Próximamente
-                    </span>
-                  </div>
                 </div>
 
                 {/* Práctica directa: solo las preguntas, con sus figuras */}
                 <span className="sombra mt-3 font-mono text-xs font-bold uppercase tracking-[0.2em]">
                   Solo preguntas · sin diapositivas
                 </span>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
                   {([{ modo: "todo" as Modo, titulo: "Todas" }, ...MODOS]).map(({ modo: m, titulo }) => (
                     <TarjetaModo
                       key={m}
@@ -923,14 +918,14 @@ function TarjetaModo({
   const hecha = !posicion ? 0 : terminado ? total : solo ? indicePregunta(paginas, posicion) : posicion.pagina;
   const detalle = !posicion
     ? solo
-      ? `${preguntas} preguntas`
+      ? `${preguntas} preg.`
       : `${total} páginas · ${preguntas} preguntas`
     : terminado
       ? solo
         ? "Terminado"
         : "Terminado · ver resultado"
       : solo
-        ? `Continuar · ${hecha + 1}/${total}`
+        ? `▶ ${hecha + 1}/${total}`
         : `Continuar · pág. ${hecha + 1} de ${total}`;
 
   return (
