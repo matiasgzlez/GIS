@@ -93,6 +93,8 @@ export default function Quiz() {
   /** Repaso de las falladas: las mismas páginas, solo con esas preguntas. */
   const [repaso, setRepaso] = useState<Pagina[] | null>(null);
   const [vista, setVista] = useState<Vista>("lectura");
+  /** Modo elegido en el menú para practicar sin diapositivas. */
+  const [practica, setPractica] = useState<Vista>("preguntas");
   /** Sin lectura: se va directo a las preguntas. */
   const solo = vista !== "lectura";
   const [paso, setPaso] = useState<Paso>(inicioDe(false));
@@ -480,49 +482,58 @@ export default function Quiz() {
                   ))}
                 </div>
 
-                {/* Práctica directa: solo las preguntas, con sus figuras */}
-                {(
-                  [
-                    { vista: "preguntas" as Vista, titulo: "Solo preguntas · sin diapositivas" },
-                    { vista: "importantes" as Vista, titulo: "★ Solo las importantes" },
-                  ]
-                ).map(({ vista: v, titulo }) => (
-                  <div key={v} className="contents">
-                    <div className="mt-2 flex items-center justify-between gap-3">
-                      <span className="sombra font-mono text-xs font-bold uppercase tracking-[0.2em]">{titulo}</span>
-                      {v === "importantes" && (
-                        /* Las preguntas del parcial de septiembre 2025, todas juntas */
-                        <button
-                          onClick={() => empezar("todo", "parcial")}
-                          className="shrink-0 rounded-full bg-[var(--color-accent)] px-3 py-0.5 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-white transition-opacity hover:opacity-85"
-                        >
-                          Parcial 2025 ·{" "}
-                          {(() => {
-                            const total = paginasDe("todo", "parcial").reduce((n, pg) => n + pg.preguntas.length, 0);
-                            const pos = posiciones[claveDe("todo", "parcial")];
-                            if (!pos) return `${total} preg.`;
-                            if (pos.pagina >= paginasDe("todo", "parcial").length) return "terminado";
-                            return `▶ ${indicePregunta(paginasDe("todo", "parcial"), pos) + 1}/${total}`;
-                          })()}
-                        </button>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
-                      {([{ modo: "todo" as Modo, titulo: "Todas" }, ...MODOS]).map(({ modo: m, titulo: t }) => (
-                        <TarjetaModo
-                          key={m}
-                          titulo={t.replace("Unidad ", "U")}
-                          paginas={paginasDe(m, v)}
-                          posicion={posiciones[claveDe(m, v)]}
-                          onEmpezar={() => empezar(m, v)}
-                          onReiniciar={() => reiniciar(m, v)}
-                          solo
-                        />
-                      ))}
-                    </div>
+                {/* Práctica directa: un selector de modo y una ficha por unidad */}
+                <div className="mt-1 rounded-2xl bg-black/40 p-4 backdrop-blur-sm">
+                  <span className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-white">
+                    Practicar sin diapositivas
+                  </span>
+                  <div className="mt-2 grid grid-cols-3 gap-1 rounded-full bg-white/15 p-1">
+                    {(
+                      [
+                        { v: "preguntas", t: "Todas" },
+                        { v: "importantes", t: "★ Importantes" },
+                        { v: "parcial", t: "Parcial 2025" },
+                      ] as { v: Vista; t: string }[]
+                    ).map(({ v, t }) => (
+                      <button
+                        key={v}
+                        onClick={() => setPractica(v)}
+                        className={`rounded-full px-2 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.1em] transition-colors ${
+                          practica === v ? "bg-white text-[var(--color-text-primary)]" : "text-white hover:bg-white/15"
+                        }`}
+                      >
+                        {t}
+                      </button>
+                    ))}
                   </div>
-                ))}
-
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {([{ modo: "todo" as Modo, titulo: "Todas" }, ...MODOS]).map(({ modo: m, titulo: t }) => {
+                      const pags = paginasDe(m, practica);
+                      const total = pags.reduce((n, pg) => n + pg.preguntas.length, 0);
+                      if (!total) return null;
+                      const pos = posiciones[claveDe(m, practica)];
+                      const estado = !pos ? `${total}` : pos.pagina >= pags.length ? "✓" : `▶ ${indicePregunta(pags, pos) + 1}/${total}`;
+                      return (
+                        <button
+                          key={m}
+                          onClick={() => empezar(m, practica)}
+                          className="flex items-baseline gap-1.5 rounded-full bg-white/90 px-3.5 py-1.5 transition-colors hover:bg-white"
+                        >
+                          <span className="text-sm font-black uppercase tracking-tight">{t.replace("Unidad ", "U")}</span>
+                          <span className="font-mono text-[11px] tracking-[0.08em] opacity-70">{estado}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {(["todo", ...MODOS.map((x) => x.modo)] as Modo[]).some((m) => posiciones[claveDe(m, practica)]) && (
+                    <button
+                      onClick={() => reiniciar("todo", practica)}
+                      className="mt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-white/70 hover:text-white"
+                    >
+                      Reiniciar este modo
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </motion.section>
@@ -999,7 +1010,6 @@ function TarjetaModo({
   onEmpezar,
   onReiniciar,
   destacada = false,
-  solo = false,
 }: {
   titulo: string;
   paginas: Pagina[];
@@ -1007,24 +1017,16 @@ function TarjetaModo({
   onEmpezar: () => void;
   onReiniciar: () => void;
   destacada?: boolean;
-  /** Tarjeta chica de "solo preguntas": el avance se cuenta en preguntas. */
-  solo?: boolean;
 }) {
   const preguntas = paginas.reduce((n, p) => n + p.preguntas.length, 0);
-  const terminado = posicion ? posicion.pagina >= paginas.length : false;
-  const total = solo ? preguntas : paginas.length;
-  const hecha = !posicion ? 0 : terminado ? total : solo ? indicePregunta(paginas, posicion) : posicion.pagina;
+  const total = paginas.length;
+  const terminado = posicion ? posicion.pagina >= total : false;
+  const hecha = !posicion ? 0 : terminado ? total : posicion.pagina;
   const detalle = !posicion
-    ? solo
-      ? `${preguntas} preg.`
-      : `${total} páginas · ${preguntas} preguntas`
+    ? `${total} páginas · ${preguntas} preguntas`
     : terminado
-      ? solo
-        ? "Terminado"
-        : "Terminado · ver resultado"
-      : solo
-        ? `▶ ${hecha + 1}/${total}`
-        : `Continuar · pág. ${hecha + 1} de ${total}`;
+      ? "Terminado · ver resultado"
+      : `Continuar · pág. ${hecha + 1} de ${total}`;
 
   return (
     <div
@@ -1034,14 +1036,10 @@ function TarjetaModo({
     >
       <button
         onClick={onEmpezar}
-        className={`flex w-full flex-col items-start text-left transition-opacity hover:opacity-85 ${
-          solo ? "px-4 pt-6 pb-3" : "px-5 py-4"
-        } ${destacada ? "sm:px-8 sm:py-5" : ""}`}
+        className={`flex w-full flex-col items-start px-5 py-4 text-left transition-opacity hover:opacity-85 ${destacada ? "sm:px-8 sm:py-5" : ""}`}
       >
         <span
-          className={`font-black uppercase tracking-tight ${
-            destacada ? "text-xl sm:text-2xl" : solo ? "text-lg" : "text-xl"
-          } ${posicion && !solo ? "pr-16" : ""}`}
+          className={`font-black uppercase tracking-tight ${destacada ? "text-xl sm:text-2xl" : "text-xl"} ${posicion ? "pr-16" : ""}`}
         >
           {titulo}
           {destacada ? " →" : ""}
@@ -1058,9 +1056,7 @@ function TarjetaModo({
           </div>
           <button
             onClick={onReiniciar}
-            className={`absolute right-3 font-mono text-[10px] uppercase tracking-[0.14em] opacity-70 hover:opacity-100 ${
-              solo ? "top-1.5 right-2.5 text-[9px]" : "top-2"
-            }`}
+            className="absolute top-2 right-3 font-mono text-[10px] uppercase tracking-[0.14em] opacity-70 hover:opacity-100"
             aria-label={`Reiniciar ${titulo}`}
           >
             Reiniciar
