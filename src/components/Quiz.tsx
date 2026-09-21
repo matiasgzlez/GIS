@@ -25,7 +25,7 @@ const MODOS: { modo: Modo; titulo: string }[] = [
 
 const GUARDADO = "gis-recorrido-v1";
 /** Cómo se estudia: leyendo las páginas, solo las preguntas o solo las importantes. */
-type Vista = "lectura" | "preguntas" | "importantes";
+type Vista = "lectura" | "preguntas" | "importantes" | "parcial";
 /** Sin lectura se arranca directo en la primera pregunta. */
 const inicioDe = (solo: boolean): Paso => ({ pagina: 0, pregunta: solo ? 0 : null });
 /** Cada forma de estudiar guarda su propia posición y sus propias respuestas. */
@@ -39,7 +39,8 @@ const claveP = (p: Pagina) => `${p.doc}-${p.n}`;
 const paginasDe = (modo: Modo, vista: Vista = "lectura"): Pagina[] => {
   const suyas = modo === "todo" ? RECORRIDO : RECORRIDO.filter((p) => `u${p.unidad}` === modo);
   if (vista === "lectura") return suyas;
-  const paginas = vista === "importantes" ? suyas.map((p) => ({ ...p, preguntas: p.preguntas.filter((q) => q.importante) })) : suyas;
+  const filtro = vista === "importantes" ? (q: Pregunta) => !!q.importante : vista === "parcial" ? (q: Pregunta) => !!q.parcial : null;
+  const paginas = filtro ? suyas.map((p) => ({ ...p, preguntas: p.preguntas.filter(filtro) })) : suyas;
   return paginas.filter((p) => p.preguntas.length > 0);
 };
 
@@ -96,7 +97,7 @@ export default function Quiz() {
   const solo = vista !== "lectura";
   const [paso, setPaso] = useState<Paso>(inicioDe(false));
   // Cada forma de estudiar guarda sus respuestas y sus salteos por separado
-  const vacio = { lectura: {}, preguntas: {}, importantes: {} };
+  const vacio = { lectura: {}, preguntas: {}, importantes: {}, parcial: {} };
   const [respuestasPor, setRespuestasPor] = useState<Record<Grupo, Respuestas>>(vacio);
   const [salteadasPor, setSalteadasPor] = useState<Record<Grupo, Salteadas>>(vacio);
   const [posiciones, setPosiciones] = useState<Record<string, Paso>>({});
@@ -400,7 +401,7 @@ export default function Quiz() {
         )}
         {solo && !repaso && (
           <span className="hidden opacity-80 lg:inline">
-            {vista === "importantes" ? "Solo importantes" : "Solo preguntas"}
+            {vista === "importantes" ? "Solo importantes" : vista === "parcial" ? "Solo parcial 2025" : "Solo preguntas"}
           </span>
         )}
       </div>
@@ -487,7 +488,25 @@ export default function Quiz() {
                   ]
                 ).map(({ vista: v, titulo }) => (
                   <div key={v} className="contents">
-                    <span className="sombra mt-3 font-mono text-xs font-bold uppercase tracking-[0.2em]">{titulo}</span>
+                    <div className="mt-2 flex items-center justify-between gap-3">
+                      <span className="sombra font-mono text-xs font-bold uppercase tracking-[0.2em]">{titulo}</span>
+                      {v === "importantes" && (
+                        /* Las preguntas del parcial de septiembre 2025, todas juntas */
+                        <button
+                          onClick={() => empezar("todo", "parcial")}
+                          className="shrink-0 rounded-full bg-[var(--color-accent)] px-3 py-0.5 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-white transition-opacity hover:opacity-85"
+                        >
+                          Parcial 2025 ·{" "}
+                          {(() => {
+                            const total = paginasDe("todo", "parcial").reduce((n, pg) => n + pg.preguntas.length, 0);
+                            const pos = posiciones[claveDe("todo", "parcial")];
+                            if (!pos) return `${total} preg.`;
+                            if (pos.pagina >= paginasDe("todo", "parcial").length) return "terminado";
+                            return `▶ ${indicePregunta(paginasDe("todo", "parcial"), pos) + 1}/${total}`;
+                          })()}
+                        </button>
+                      )}
+                    </div>
                     <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
                       {([{ modo: "todo" as Modo, titulo: "Todas" }, ...MODOS]).map(({ modo: m, titulo: t }) => (
                         <TarjetaModo
@@ -503,6 +522,7 @@ export default function Quiz() {
                     </div>
                   </div>
                 ))}
+
               </div>
             </div>
           </motion.section>

@@ -10,7 +10,7 @@ App para estudiar el primer parcial de **Sistemas de Información Geográfica** 
 - **Solo preguntas:** para cuando ya se estudió, cada unidad (o todas) se puede practicar sin ver las diapositivas, directo a las preguntas con sus figuras. Tiene su propio avance y sus propias respuestas.
 - **★ Solo las importantes:** practicar únicamente las preguntas marcadas, de una unidad o de todas, también con su propio avance y sus propias respuestas.
 - **★ Importante:** las preguntas de los temas marcados como importantes o "pregunta de parcial" en los apuntes de clase llevan esa marca. Hoy son 84 (U1: 30, U2: 10, U3: 11, U4: 33), incluidas las del parcial 2025.
-- **Parcial 2025:** las preguntas del 1er parcial de septiembre de 2025 llevan el badge **PARCIAL 2025** (y cuentan como importantes), ubicadas después de la página de su tema, junto con variantes de cada una.
+- **Parcial 2025:** las preguntas del 1er parcial de septiembre de 2025 llevan el badge **PARCIAL 2025** (y cuentan como importantes), ubicadas después de la página de su tema, junto con variantes de cada una. El botón rojo "Parcial 2025" del menú practica solo esas 33, con su propio avance.
 - **Avance guardado** en el navegador: cada recorrido retoma donde quedó, con opción de reiniciarlo.
 - **Todas las preguntas se responden marcando casillas y confirmando**, aunque tengan una sola respuesta correcta: la app no avisa cuántas hay que marcar. Cuenta como correcta solo si se marca exactamente la combinación. Las opciones tienen un orden fijo por pregunta.
 - **Saltear:** si una página no interesa, se saltea con su botón (o con la tecla `S`) junto con sus preguntas, que no cuentan en el resultado. Al volver a entrar a responderla, deja de estar salteada.
