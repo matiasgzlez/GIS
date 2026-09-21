@@ -388,7 +388,12 @@ export default function Quiz() {
         {actual?.origen === "clase" && (
           <span className="rounded border border-white px-2 py-0.5 text-[10px] sm:text-xs">Apunte de clase</span>
         )}
-        {actual?.importante && (
+        {actual?.parcial && (
+          <span className="rounded bg-[var(--color-accent)] px-2 py-0.5 text-[10px] font-bold text-white [text-shadow:none] sm:text-xs">
+            Parcial {actual.parcial}
+          </span>
+        )}
+        {actual?.importante && !actual.parcial && (
           <span className="rounded bg-[#F2C744] px-2 py-0.5 text-[10px] font-bold text-black [text-shadow:none] sm:text-xs">
             ★ Importante
           </span>
@@ -850,7 +855,7 @@ export default function Quiz() {
                     {erradas.map((p) => (
                       <li key={p.id} className="border-l-4 border-[var(--color-accent)] pl-5">
                         <span className="block font-mono text-xs uppercase tracking-[0.12em] text-[var(--color-accent)]">
-                          {p.importante ? "★ " : ""}
+                          {p.parcial ? `Parcial ${p.parcial} · ` : p.importante ? "★ " : ""}
                           {REFERENCIA[p.id]}
                         </span>
                         <span className="mt-1 block text-lg font-bold leading-snug">{p.enunciado}</span>
