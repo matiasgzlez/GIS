@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { EASE } from "@/lib/motion";
-import { UNIDADES, type Pregunta, type Unidad } from "@/lib/preguntas";
+import { PARCIALES, UNIDADES, type Pregunta, type Unidad } from "@/lib/preguntas";
 import { DOCS, RECORRIDO, REFERENCIA, type Pagina } from "@/lib/recorrido";
 
 const VERDE = "#1E7A3C";
@@ -11,17 +11,28 @@ const LETRAS = "ABCDEFGHI";
 const VF = ["Verdadero", "Falso"];
 
 type Estado = "inicio" | "leyendo" | "final";
-/** Qué se recorre: todas las unidades o una sola. */
-type Modo = "todo" | "u1" | "u2" | "u3" | "u4";
+/** Qué se recorre: todas las unidades de un parcial ("todo" el 1ro, "todo2" el 2do) o una sola. */
+type Modo = "todo" | "todo2" | "u1" | "u2" | "u3" | "u4" | "u5" | "u7";
+type NParcial = 1 | 2;
 /** Dónde está parado: una página (pregunta null = leyéndola) o una de sus preguntas. */
 type Paso = { pagina: number; pregunta: number | null };
 
-const MODOS: { modo: Modo; titulo: string }[] = [
-  { modo: "u1", titulo: "Unidad 1" },
-  { modo: "u2", titulo: "Unidad 2" },
-  { modo: "u3", titulo: "Unidad 3" },
-  { modo: "u4", titulo: "Unidad 4" },
-];
+const TODO: Record<NParcial, Modo> = { 1: "todo", 2: "todo2" };
+const MODOS: Record<NParcial, { modo: Modo; titulo: string }[]> = {
+  1: [
+    { modo: "u1", titulo: "Unidad 1" },
+    { modo: "u2", titulo: "Unidad 2" },
+    { modo: "u3", titulo: "Unidad 3" },
+    { modo: "u4", titulo: "Unidad 4" },
+  ],
+  2: [
+    { modo: "u5", titulo: "Unidad 5" },
+    { modo: "u7", titulo: "Unidad 7" },
+  ],
+};
+/** A qué parcial pertenece un recorrido. */
+const parcialDe = (m: Modo): NParcial =>
+  m === "todo2" || PARCIALES[2].some((u) => m === `u${u}`) ? 2 : 1;
 
 const GUARDADO = "gis-recorrido-v1";
 /** Cómo se estudia: leyendo las páginas, solo las preguntas o solo las importantes. */
@@ -37,9 +48,17 @@ type Salteadas = Record<string, true>;
 const claveP = (p: Pagina) => `${p.doc}-${p.n}`;
 
 const paginasDe = (modo: Modo, vista: Vista = "lectura"): Pagina[] => {
-  const suyas = modo === "todo" ? RECORRIDO : RECORRIDO.filter((p) => `u${p.unidad}` === modo);
+  const n = parcialDe(modo);
+  const suyas =
+    modo === TODO[n] ? RECORRIDO.filter((p) => PARCIALES[n].includes(p.unidad)) : RECORRIDO.filter((p) => `u${p.unidad}` === modo);
   if (vista === "lectura") return suyas;
-  const filtro = vista === "importantes" ? (q: Pregunta) => !!q.importante : vista === "parcial" ? (q: Pregunta) => !!q.parcial : null;
+  // En el 2do parcial, el modo "parcial" es el simulacro
+  const filtro =
+    vista === "importantes"
+      ? (q: Pregunta) => !!q.importante
+      : vista === "parcial"
+        ? (q: Pregunta) => (n === 2 ? !!q.simulacro : !!q.parcial)
+        : null;
   const paginas = filtro ? suyas.map((p) => ({ ...p, preguntas: p.preguntas.filter(filtro) })) : suyas;
   return paginas.filter((p) => p.preguntas.length > 0);
 };
@@ -89,7 +108,9 @@ const TRAMOS = Array.from({ length: 17 }, (_, i) => `/video/tierra-${String(i).p
 
 export default function Quiz() {
   const [estado, setEstado] = useState<Estado>("inicio");
-  const [modo, setModo] = useState<Modo>("todo");
+  const [modo, setModo] = useState<Modo>("todo2");
+  /** Parcial elegido en el menú (el 2do es el que viene). */
+  const [parcial, setParcial] = useState<NParcial>(2);
   /** Repaso de las falladas: las mismas páginas, solo con esas preguntas. */
   const [repaso, setRepaso] = useState<Pagina[] | null>(null);
   const [vista, setVista] = useState<Vista>("lectura");
@@ -143,6 +164,7 @@ export default function Quiz() {
       else if (g?.respuestas) setRespuestasPor({ ...vacio, lectura: g.respuestas });
       if (g?.salteadasPor) setSalteadasPor({ ...vacio, ...g.salteadasPor });
       if (g?.posiciones) setPosiciones(g.posiciones);
+      if (g?.parcial === 1 || g?.parcial === 2) setParcial(g.parcial);
     } catch {
       /* sin avance guardado */
     }
@@ -152,11 +174,11 @@ export default function Quiz() {
   useEffect(() => {
     if (!cargado) return;
     try {
-      localStorage.setItem(GUARDADO, JSON.stringify({ respuestasPor, salteadasPor, posiciones }));
+      localStorage.setItem(GUARDADO, JSON.stringify({ respuestasPor, salteadasPor, posiciones, parcial }));
     } catch {
       /* navegador sin almacenamiento */
     }
-  }, [cargado, respuestasPor, salteadasPor, posiciones]);
+  }, [cargado, respuestasPor, salteadasPor, posiciones, parcial]);
 
   const grupo: Grupo = vista;
   const respuestas = respuestasPor[grupo];
@@ -300,7 +322,8 @@ export default function Quiz() {
     setPosiciones((prev) => {
       const nuevas = { ...prev };
       // Reiniciar el recorrido completo reinicia también cada unidad
-      for (const k of m === "todo" ? (["todo", "u1", "u2", "u3", "u4"] as Modo[]) : [m]) delete nuevas[claveDe(k, v)];
+      const n = parcialDe(m);
+      for (const k of m === TODO[n] ? [m, ...MODOS[n].map((x) => x.modo)] : [m]) delete nuevas[claveDe(k, v)];
       return nuevas;
     });
   };
@@ -353,10 +376,13 @@ export default function Quiz() {
   }, [estado, pagina, actual, orden, respondida, zoom, tocar, confirmar, avanzar, retroceder, saltear]);
 
   const esUltimaPagina = paso.pagina + 1 >= paginas.length;
+  /** En el 2do parcial todavía no hay temas marcados como importantes: se oculta esa opción. */
+  const hayImportantes = paginasDe(TODO[parcial], "importantes").length > 0;
+  const practicaVista: Vista = practica === "importantes" && !hayImportantes ? "preguntas" : practica;
   const textoSiguiente = (quedanPreguntas: boolean) =>
     quedanPreguntas ? "Siguiente pregunta →" : esUltimaPagina ? "Ver resultado →" : "Siguiente página →";
 
-  const porUnidad = ([1, 2, 3, 4] as Unidad[])
+  const porUnidad = (Object.keys(UNIDADES).map(Number) as Unidad[])
     .map((u) => {
       const lista = delRecorrido.filter((p) => p.unidad === u);
       return { u, total: lista.length, bien: lista.filter((p) => esCorrecta(p, respuestas[p.id])).length };
@@ -391,6 +417,11 @@ export default function Quiz() {
         {actual?.origen === "clase" && (
           <span className="rounded border border-white px-2 py-0.5 text-[10px] sm:text-xs">Apunte de clase</span>
         )}
+        {actual?.simulacro && (
+          <span className="rounded bg-[var(--color-accent)] px-2 py-0.5 text-[10px] font-bold text-white [text-shadow:none] sm:text-xs">
+            Simulacro
+          </span>
+        )}
         {actual?.parcial && (
           <span className="rounded bg-[var(--color-accent)] px-2 py-0.5 text-[10px] font-bold text-white [text-shadow:none] sm:text-xs">
             Parcial {actual.parcial}
@@ -403,7 +434,13 @@ export default function Quiz() {
         )}
         {solo && !repaso && (
           <span className="hidden opacity-80 lg:inline">
-            {vista === "importantes" ? "Solo importantes" : vista === "parcial" ? "Solo parcial 2025" : "Solo preguntas"}
+            {vista === "importantes"
+              ? "Solo importantes"
+              : vista === "parcial"
+                ? parcialDe(modo) === 2
+                  ? "Solo simulacro"
+                  : "Solo parcial 2025"
+                : "Solo preguntas"}
           </span>
         )}
       </div>
@@ -451,26 +488,42 @@ export default function Quiz() {
             transition={{ duration: 0.35, ease: EASE }}
             className={`${ANCHO} flex min-h-[100svh] flex-col justify-center py-12`}
           >
-            <span className="sombra font-mono text-xs uppercase tracking-[0.24em] sm:text-sm">
-              UTN FRRe · Sistemas de Información Geográfica
-            </span>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span className="sombra font-mono text-xs uppercase tracking-[0.24em] sm:text-sm">
+                UTN FRRe · Sistemas de Información Geográfica
+              </span>
+              {/* Qué parcial se estudia: cambia las unidades del menú */}
+              <div className="flex gap-1 rounded-full bg-black/40 p-1 backdrop-blur-sm">
+                {([1, 2] as NParcial[]).map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => setParcial(n)}
+                    className={`rounded-full px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-[0.12em] transition-colors ${
+                      parcial === n ? "bg-white text-[var(--color-text-primary)]" : "text-white hover:bg-white/15"
+                    }`}
+                  >
+                    {n === 1 ? "1er parcial · U1-U4" : "2do parcial · U5 y U7"}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <div className="mt-4 grid gap-10 lg:grid-cols-12 lg:items-end lg:gap-16">
               <h1 className="trazo font-black uppercase leading-[0.88] tracking-[-0.04em] text-[clamp(52px,8.5vw,150px)] lg:col-span-7">
-                1er parcial <span className="text-[var(--color-accent)]">GIS</span>
+                {parcial === 1 ? "1er" : "2do"} parcial <span className="text-[var(--color-accent)]">GIS</span>
               </h1>
 
               <div className="flex flex-col gap-3 lg:col-span-5">
                 <TarjetaModo
                   titulo="Recorrido completo"
-                  paginas={paginasDe("todo")}
-                  posicion={posiciones.todo}
-                  onEmpezar={() => empezar("todo", "lectura")}
-                  onReiniciar={() => reiniciar("todo", "lectura")}
+                  paginas={paginasDe(TODO[parcial])}
+                  posicion={posiciones[TODO[parcial]]}
+                  onEmpezar={() => empezar(TODO[parcial], "lectura")}
+                  onReiniciar={() => reiniciar(TODO[parcial], "lectura")}
                   destacada
                 />
                 <div className="grid grid-cols-2 gap-3">
-                  {MODOS.map(({ modo: m, titulo }) => (
+                  {MODOS[parcial].map(({ modo: m, titulo }) => (
                     <TarjetaModo
                       key={m}
                       titulo={titulo}
@@ -487,19 +540,19 @@ export default function Quiz() {
                   <span className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-white">
                     Practicar sin diapositivas
                   </span>
-                  <div className="mt-2 grid grid-cols-3 gap-1 rounded-full bg-white/15 p-1">
+                  <div className={`mt-2 grid ${hayImportantes ? "grid-cols-3" : "grid-cols-2"} gap-1 rounded-full bg-white/15 p-1`}>
                     {(
                       [
                         { v: "preguntas", t: "Todas" },
-                        { v: "importantes", t: "★ Importantes" },
-                        { v: "parcial", t: "Parcial 2025" },
+                        ...(hayImportantes ? [{ v: "importantes", t: "★ Importantes" }] : []),
+                        { v: "parcial", t: parcial === 1 ? "Parcial 2025" : "Simulacro" },
                       ] as { v: Vista; t: string }[]
                     ).map(({ v, t }) => (
                       <button
                         key={v}
                         onClick={() => setPractica(v)}
                         className={`rounded-full px-2 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.1em] transition-colors ${
-                          practica === v ? "bg-white text-[var(--color-text-primary)]" : "text-white hover:bg-white/15"
+                          practicaVista === v ? "bg-white text-[var(--color-text-primary)]" : "text-white hover:bg-white/15"
                         }`}
                       >
                         {t}
@@ -507,16 +560,16 @@ export default function Quiz() {
                     ))}
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {([{ modo: "todo" as Modo, titulo: "Todas" }, ...MODOS]).map(({ modo: m, titulo: t }) => {
-                      const pags = paginasDe(m, practica);
+                    {([{ modo: TODO[parcial], titulo: "Todas" }, ...MODOS[parcial]]).map(({ modo: m, titulo: t }) => {
+                      const pags = paginasDe(m, practicaVista);
                       const total = pags.reduce((n, pg) => n + pg.preguntas.length, 0);
                       if (!total) return null;
-                      const pos = posiciones[claveDe(m, practica)];
+                      const pos = posiciones[claveDe(m, practicaVista)];
                       const estado = !pos ? `${total}` : pos.pagina >= pags.length ? "✓" : `▶ ${indicePregunta(pags, pos) + 1}/${total}`;
                       return (
                         <button
                           key={m}
-                          onClick={() => empezar(m, practica)}
+                          onClick={() => empezar(m, practicaVista)}
                           className="flex items-baseline gap-1.5 rounded-full bg-white/90 px-3.5 py-1.5 transition-colors hover:bg-white"
                         >
                           <span className="text-sm font-black uppercase tracking-tight">{t.replace("Unidad ", "U")}</span>
@@ -525,9 +578,9 @@ export default function Quiz() {
                       );
                     })}
                   </div>
-                  {(["todo", ...MODOS.map((x) => x.modo)] as Modo[]).some((m) => posiciones[claveDe(m, practica)]) && (
+                  {[TODO[parcial], ...MODOS[parcial].map((x) => x.modo)].some((m) => posiciones[claveDe(m, practicaVista)]) && (
                     <button
-                      onClick={() => reiniciar("todo", practica)}
+                      onClick={() => reiniciar(TODO[parcial], practicaVista)}
                       className="mt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-white/70 hover:text-white"
                     >
                       Reiniciar este modo
@@ -886,7 +939,7 @@ export default function Quiz() {
                     {erradas.map((p) => (
                       <li key={p.id} className="border-l-4 border-[var(--color-accent)] pl-5">
                         <span className="block font-mono text-xs uppercase tracking-[0.12em] text-[var(--color-accent)]">
-                          {p.parcial ? `Parcial ${p.parcial} · ` : p.importante ? "★ " : ""}
+                          {p.parcial ? `Parcial ${p.parcial} · ` : p.simulacro ? "Simulacro · " : p.importante ? "★ " : ""}
                           {REFERENCIA[p.id]}
                         </span>
                         <span className="mt-1 block text-lg font-bold leading-snug">{p.enunciado}</span>

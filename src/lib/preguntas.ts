@@ -6,8 +6,10 @@
  * - multiple: hay que marcar todas las correctas (y ninguna incorrecta)
  * - vf:       verdadero o falso (opciones fijas)
  */
+import { banco2 } from "./preguntas-2do";
+
 export type Tipo = "unica" | "multiple" | "vf";
-export type Unidad = 1 | 2 | 3 | 4;
+export type Unidad = 1 | 2 | 3 | 4 | 5 | 7;
 
 export type Pregunta = {
   id: string;
@@ -31,6 +33,8 @@ export type Pregunta = {
   importante?: true;
   /** Pregunta tomada en un parcial real (muestra el badge “PARCIAL 2025”). */
   parcial?: 2025;
+  /** Forma parte del simulacro del 2do parcial (formato y dificultad de examen). */
+  simulacro?: true;
 };
 
 export const UNIDADES: Record<Unidad, { nombre: string; corto: string }> = {
@@ -38,7 +42,12 @@ export const UNIDADES: Record<Unidad, { nombre: string; corto: string }> = {
   2: { nombre: "Modelos para la información geográfica", corto: "U2 · Modelos" },
   3: { nombre: "Fundamentos cartográficos y geodésicos", corto: "U3 · Cartografía" },
   4: { nombre: "Visualización de la información geográfica", corto: "U4 · Visualización" },
+  5: { nombre: "Estándares para la información geográfica", corto: "U5 · Estándares" },
+  7: { nombre: "Fuentes de datos espaciales", corto: "U7 · Fuentes" },
 };
+
+/** Unidades que entran en cada parcial (la Unidad 6 no se toma). */
+export const PARCIALES: Record<1 | 2, Unidad[]> = { 1: [1, 2, 3, 4], 2: [5, 7] };
 
 const V = 0;
 const F = 1;
@@ -4575,4 +4584,4 @@ const banco: Pregunta[] = [
 
 
 /** Todas las preguntas. El orden en que se responden lo define el recorrido (src/lib/recorrido.ts). */
-export const preguntas: Pregunta[] = banco;
+export const preguntas: Pregunta[] = [...banco, ...banco2];

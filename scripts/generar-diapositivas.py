@@ -27,6 +27,9 @@ DOCS = {
     "u3": ("Unidad 3.pdf", 1.8),
     "u4": ("Unidad 4-2026.pdf", 1.8),
     "u4c": ("Conceptos_Cartograficos_def.pdf", 2.0),
+    # El nombre de la Unidad 5 puede llegar con los acentos rotos: se busca por el comienzo
+    "u5": ("Unidad 5*.pdf", 1.4),
+    "u7": ("Unidad7*.pdf", 1.8),
 }
 
 
@@ -36,7 +39,7 @@ def main():
     carpeta = Path(sys.argv[1]).expanduser()
 
     paginas = sorted(
-        {(d, int(n)) for d, n in re.findall(r'\["(u1|u2a|u2b|u3|u4|u4c)", (\d+),', RECORRIDO.read_text(encoding="utf-8"))}
+        {(d, int(n)) for d, n in re.findall(r'\["(u1|u2a|u2b|u3|u4|u4c|u5|u7)", (\d+),', RECORRIDO.read_text(encoding="utf-8"))}
     )
 
     SALIDA_IMG.mkdir(parents=True, exist_ok=True)
@@ -44,9 +47,10 @@ def main():
     for d, n in paginas:
         archivo, zoom = DOCS[d]
         if d not in pdfs:
-            ruta = carpeta / archivo
-            if not ruta.exists():
-                sys.exit(f"No encontré {ruta}")
+            encontrados = sorted(carpeta.glob(archivo))
+            if not encontrados:
+                sys.exit(f"No encontré {carpeta / archivo}")
+            ruta = encontrados[0]
             pdfs[d] = fitz.open(ruta)
         pdf = pdfs[d]
         if not 1 <= n <= len(pdf):
