@@ -12,7 +12,7 @@ const VF = ["Verdadero", "Falso"];
 
 type Estado = "inicio" | "leyendo" | "final";
 /** Qué se recorre: todas las unidades de un parcial ("todo" el 1ro, "todo2" el 2do) o una sola. */
-type Modo = "todo" | "todo2" | "u1" | "u2" | "u3" | "u4" | "u5" | "u7";
+type Modo = "todo" | "todo2" | "u1" | "u2" | "u3" | "u4" | "u5" | "u7" | "u8";
 type NParcial = 1 | 2;
 /** Dónde está parado: una página (pregunta null = leyéndola) o una de sus preguntas. */
 type Paso = { pagina: number; pregunta: number | null };
@@ -28,6 +28,7 @@ const MODOS: Record<NParcial, { modo: Modo; titulo: string }[]> = {
   2: [
     { modo: "u5", titulo: "Unidad 5" },
     { modo: "u7", titulo: "Unidad 7" },
+    { modo: "u8", titulo: "Unidad 8" },
   ],
 };
 /** A qué parcial pertenece un recorrido. */
@@ -502,7 +503,7 @@ export default function Quiz() {
                       parcial === n ? "bg-white text-[var(--color-text-primary)]" : "text-white hover:bg-white/15"
                     }`}
                   >
-                    {n === 1 ? "1er parcial · U1-U4" : "2do parcial · U5 y U7"}
+                    {n === 1 ? "1er parcial · U1-U4" : "2do parcial · U5, U7 y U8"}
                   </button>
                 ))}
               </div>

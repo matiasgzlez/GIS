@@ -9,7 +9,7 @@
 import { banco2 } from "./preguntas-2do";
 
 export type Tipo = "unica" | "multiple" | "vf";
-export type Unidad = 1 | 2 | 3 | 4 | 5 | 7;
+export type Unidad = 1 | 2 | 3 | 4 | 5 | 7 | 8;
 
 export type Pregunta = {
   id: string;
@@ -44,10 +44,11 @@ export const UNIDADES: Record<Unidad, { nombre: string; corto: string }> = {
   4: { nombre: "Visualización de la información geográfica", corto: "U4 · Visualización" },
   5: { nombre: "Estándares para la información geográfica", corto: "U5 · Estándares" },
   7: { nombre: "Fuentes de datos espaciales", corto: "U7 · Fuentes" },
+  8: { nombre: "Sensores remotos y sistemas de información", corto: "U8 · Sensores remotos" },
 };
 
 /** Unidades que entran en cada parcial (la Unidad 6 no se toma). */
-export const PARCIALES: Record<1 | 2, Unidad[]> = { 1: [1, 2, 3, 4], 2: [5, 7] };
+export const PARCIALES: Record<1 | 2, Unidad[]> = { 1: [1, 2, 3, 4], 2: [5, 7, 8] };
 
 const V = 0;
 const F = 1;

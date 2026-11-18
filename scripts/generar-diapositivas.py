@@ -30,6 +30,7 @@ DOCS = {
     # El nombre de la Unidad 5 puede llegar con los acentos rotos: se busca por el comienzo
     "u5": ("Unidad 5*.pdf", 1.4),
     "u7": ("Unidad7*.pdf", 1.8),
+    "u8": ("Unidad 8*.pdf", 1.8),
 }
 
 
@@ -39,7 +40,7 @@ def main():
     carpeta = Path(sys.argv[1]).expanduser()
 
     paginas = sorted(
-        {(d, int(n)) for d, n in re.findall(r'\["(u1|u2a|u2b|u3|u4|u4c|u5|u7)", (\d+),', RECORRIDO.read_text(encoding="utf-8"))}
+        {(d, int(n)) for d, n in re.findall(r'\["(u1|u2a|u2b|u3|u4|u4c|u5|u7|u8)", (\d+),', RECORRIDO.read_text(encoding="utf-8"))}
     )
 
     SALIDA_IMG.mkdir(parents=True, exist_ok=True)
