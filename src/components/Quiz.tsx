@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { EASE } from "@/lib/motion";
-import { PARCIALES, UNIDADES, type Pregunta, type Unidad } from "@/lib/preguntas";
+import { PARCIALES, UNIDADES, preguntas as TODAS, type Pregunta, type Unidad } from "@/lib/preguntas";
 import { DOCS, RECORRIDO, REFERENCIA, type Pagina } from "@/lib/recorrido";
 
 const VERDE = "#1E7A3C";
@@ -110,6 +110,31 @@ const BOTON_OSCURO =
   "flex-1 rounded-xl bg-[var(--color-bg-dark)] px-6 py-4 text-lg font-black uppercase tracking-tight text-white transition-opacity hover:opacity-90 disabled:opacity-30";
 
 /** El video de fondo, cortado en tramos de ~10 MB sin recomprimir (se reproducen en cadena). */
+/**
+ * Repaso espaciado: una pregunta errada vuelve a aparecer DISTANCIA páginas más adelante, como copia
+ * con id "original~vuelta". Si se vuelve a errar, se repite, hasta MAX_VUELTAS veces.
+ * El resultado cuenta solo el primer intento.
+ */
+const DISTANCIA = 3;
+const MAX_VUELTAS = 2;
+const SEP = "~";
+const baseId = (id: string) => id.split(SEP)[0];
+const vueltaDe = (id: string) => Number(id.split(SEP)[1] ?? 0);
+const POR_ID = new Map(TODAS.map((q) => [q.id, q]));
+/** Una pregunta a repetir y la página (del recorrido) donde vuelve a aparecer. */
+type Refuerzo = { id: string; pagina: number };
+/** Suma a cada página las preguntas erradas antes que le tocan repetir. */
+const conRefuerzos = (paginas: Pagina[], lista: Refuerzo[] = []): Pagina[] => {
+  if (!lista.length || !paginas.length) return paginas;
+  const extra = new Map<number, Pregunta[]>();
+  for (const r of lista) {
+    const q = POR_ID.get(baseId(r.id));
+    if (!q) continue;
+    const i = Math.min(r.pagina, paginas.length - 1);
+    extra.set(i, [...(extra.get(i) ?? []), { ...q, id: r.id }]);
+  }
+  return paginas.map((p, i) => (extra.has(i) ? { ...p, preguntas: [...p.preguntas, ...extra.get(i)!] } : p));
+};
 const TRAMOS = Array.from({ length: 17 }, (_, i) => `/video/tierra-${String(i).padStart(2, "0")}.mp4`);
 
 export default function Quiz() {
@@ -130,6 +155,8 @@ export default function Quiz() {
   const [respuestasPor, setRespuestasPor] = useState<Record<Grupo, Respuestas>>(vacio);
   const [salteadasPor, setSalteadasPor] = useState<Record<Grupo, Salteadas>>(vacio);
   const [posiciones, setPosiciones] = useState<Record<string, Paso>>({});
+  /** Preguntas erradas que vuelven a aparecer más adelante, por recorrido (misma clave que la posición). */
+  const [refuerzos, setRefuerzos] = useState<Record<string, Refuerzo[]>>({});
   const [cargado, setCargado] = useState(false);
   const [marcadas, setMarcadas] = useState<number[]>([]);
   const [zoom, setZoom] = useState<string | null>(null);
@@ -182,6 +209,7 @@ export default function Quiz() {
           }
         setPosiciones(pos);
       }
+      if (g?.refuerzos) setRefuerzos(g.refuerzos);
       if (g?.parcial === 1 || g?.parcial === 2) setParcial(g.parcial);
     } catch {
       /* sin avance guardado */
@@ -192,11 +220,11 @@ export default function Quiz() {
   useEffect(() => {
     if (!cargado) return;
     try {
-      localStorage.setItem(GUARDADO, JSON.stringify({ respuestasPor, salteadasPor, posiciones, parcial }));
+      localStorage.setItem(GUARDADO, JSON.stringify({ respuestasPor, salteadasPor, posiciones, refuerzos, parcial }));
     } catch {
       /* navegador sin almacenamiento */
     }
-  }, [cargado, respuestasPor, salteadasPor, posiciones, parcial]);
+  }, [cargado, respuestasPor, salteadasPor, posiciones, refuerzos, parcial]);
 
   const grupo: Grupo = vista;
   const respuestas = respuestasPor[grupo];
@@ -217,7 +245,7 @@ export default function Quiz() {
     [grupo],
   );
 
-  const paginas = repaso ?? paginasDe(modo, vista);
+  const paginas = repaso ?? conRefuerzos(paginasDe(modo, vista), refuerzos[clave]);
   const pagina = paginas[paso.pagina];
   const actual = pagina && paso.pregunta !== null ? pagina.preguntas[paso.pregunta] : undefined;
   const orden = useMemo(() => (actual ? ordenDe(actual) : []), [actual]);
@@ -310,7 +338,18 @@ export default function Quiz() {
   const confirmar = useCallback(() => {
     if (!actual || respondida || marcadas.length === 0) return;
     cambiarRespuestas(grupo, (prev) => ({ ...prev, [actual.id]: [...marcadas] }));
-  }, [actual, respondida, marcadas, grupo, cambiarRespuestas]);
+    // Errada: vuelve a aparecer unas páginas más adelante (en el repaso de falladas, no)
+    const vuelta = vueltaDe(actual.id) + 1;
+    if (!repaso && !esCorrecta(actual, marcadas) && vuelta <= MAX_VUELTAS) {
+      const id = `${baseId(actual.id)}${SEP}${vuelta}`;
+      const destino = Math.min(paso.pagina + DISTANCIA, paginas.length - 1);
+      setRefuerzos((prev) =>
+        (prev[clave] ?? []).some((r) => r.id === id)
+          ? prev
+          : { ...prev, [clave]: [...(prev[clave] ?? []), { id, pagina: destino }] },
+      );
+    }
+  }, [actual, respondida, marcadas, grupo, cambiarRespuestas, repaso, paso.pagina, paginas.length, clave]);
 
   const empezar = (m: Modo, v: Vista) => {
     const guardada = posiciones[claveDe(m, v)] ?? inicioDe(v !== "lectura");
@@ -330,7 +369,7 @@ export default function Quiz() {
   const reiniciar = (m: Modo, v: Vista) => {
     const ids = new Set(paginasDe(m).flatMap((p) => p.preguntas.map((q) => q.id)));
     cambiarRespuestas(v, (prev) =>
-      Object.fromEntries(Object.entries(prev).filter(([id]) => !ids.has(id))),
+      Object.fromEntries(Object.entries(prev).filter(([id]) => !ids.has(baseId(id)))),
     );
     setSalteadasPor((prev) => {
       const ids = new Set(paginasDe(m).map(claveP));
@@ -344,11 +383,18 @@ export default function Quiz() {
       for (const k of m === TODO[n] ? [m, ...MODOS[n].map((x) => x.modo)] : [m]) delete nuevas[claveDe(k, v)];
       return nuevas;
     });
+    setRefuerzos((prev) => {
+      const nuevos = { ...prev };
+      const n = parcialDe(m);
+      for (const k of m === TODO[n] ? [m, ...MODOS[n].map((x) => x.modo)] : [m]) delete nuevos[claveDe(k, v)];
+      return nuevos;
+    });
   };
 
   const repasarFalladas = () => {
+    // Las repeticiones no entran: se repasan las originales que se erraron
     const falladas = paginas
-      .map((p) => ({ ...p, preguntas: p.preguntas.filter((q) => !esCorrecta(q, respuestas[q.id])) }))
+      .map((p) => ({ ...p, preguntas: p.preguntas.filter((q) => !vueltaDe(q.id) && !esCorrecta(q, respuestas[q.id])) }))
       .filter((p) => p.preguntas.length);
     const ids = new Set(falladas.flatMap((p) => p.preguntas.map((q) => q.id)));
     cambiarRespuestas(grupo, (prev) => Object.fromEntries(Object.entries(prev).filter(([id]) => !ids.has(id))));
@@ -431,8 +477,13 @@ export default function Quiz() {
         >
           ← Menú<span className="hidden sm:inline"> principal</span>
         </button>
-        <span className="font-bold">{actual ? REFERENCIA[actual.id] : pagina.etiqueta}</span>
+        <span className="font-bold">{actual ? REFERENCIA[baseId(actual.id)] : pagina.etiqueta}</span>
         {repaso && <span className="rounded border border-white px-2 py-0.5 text-[10px] sm:text-xs">Repaso</span>}
+        {actual && vueltaDe(actual.id) > 0 && (
+          <span className="rounded bg-white px-2 py-0.5 text-[10px] font-bold text-[var(--color-text-primary)] [text-shadow:none] sm:text-xs">
+            ↻ La erraste antes{vueltaDe(actual.id) > 1 ? ` · intento ${vueltaDe(actual.id) + 1}` : ""}
+          </span>
+        )}
         {actual?.origen === "clase" && (
           <span className="rounded border border-white px-2 py-0.5 text-[10px] sm:text-xs">Apunte de clase</span>
         )}

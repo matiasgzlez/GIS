@@ -22,6 +22,7 @@ App para estudiar el primer y el segundo parcial de **Sistemas de Información G
 - **Ejercicios prácticos:** escalas, coordenadas y áreas en raster, orden BSQ/BIL/BIP, faja Gauss-Krüger, zona UTM, semieje del elipsoide, operaciones de generalización, tipos de variables, clases, cuartiles y tipos de mapas temáticos.
 - **Figuras de los PDFs** en las preguntas que las necesitan. Las páginas y las figuras se amplían con un toque.
 - **Progreso y racha:** barra con un avión que avanza por las páginas y contador de aciertos seguidos.
+- **Repaso espaciado:** una pregunta errada vuelve a aparecer 3 páginas más adelante, con el badge **↻ La erraste antes** y las opciones en otro orden. Si se vuelve a errar, se repite (hasta 2 veces). El resultado cuenta solo el primer intento, como en el parcial.
 - **Resultado final** con el porcentaje, el desglose por unidad y las preguntas para repasar. "Repasar las que fallé" vuelve a mostrar solo esas páginas con solo esas preguntas.
 - Pensada para la compu (cada pregunta entra en una pantalla sin scroll) y usable desde el celu.
 
