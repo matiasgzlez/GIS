@@ -31,8 +31,10 @@ export type Pregunta = {
   origen?: "clase";
   /** Tema marcado como importante (o "pregunta de parcial") en los apuntes de clase. */
   importante?: true;
-  /** Pregunta tomada en un parcial real (muestra el badge “PARCIAL 2025”). */
-  parcial?: 2025;
+  /** Pregunta tomada en un parcial real (muestra el badge “PARCIAL 2025”, “PARCIAL 2023”, etc.). */
+  parcial?: 2025 | 2023 | 2016 | 2012 | 2010;
+  /** Otros años en que se tomó la misma pregunta (o una casi igual): se suman al badge. */
+  tambien?: number[];
   /** Forma parte del simulacro del 2do parcial (formato y dificultad de examen). */
   simulacro?: true;
 };

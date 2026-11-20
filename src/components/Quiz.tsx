@@ -36,8 +36,12 @@ const parcialDe = (m: Modo): NParcial =>
   m === "todo2" || PARCIALES[2].some((u) => m === `u${u}`) ? 2 : 1;
 
 const GUARDADO = "gis-recorrido-v1";
-/** Cómo se estudia: leyendo las páginas, solo las preguntas o solo las importantes. */
-type Vista = "lectura" | "preguntas" | "importantes" | "parcial";
+/** Cómo se estudia: leyendo las páginas, solo las preguntas, las importantes, las de un parcial real o el simulacro. */
+type Vista = "lectura" | "preguntas" | "importantes" | "parcial" | "simulacro";
+/** Nombre del modo con las preguntas de parciales reales de cada parcial. */
+const REALES: Record<NParcial, string> = { 1: "Parcial 2025", 2: "Parciales reales" };
+/** Años en que se tomó una pregunta, del más reciente al más viejo. */
+const añosDe = (q: Pregunta) => [q.parcial, ...(q.tambien ?? [])].sort((a, b) => Number(b) - Number(a)).join(" · ");
 /** Sin lectura se arranca directo en la primera pregunta. */
 const inicioDe = (solo: boolean): Paso => ({ pagina: 0, pregunta: solo ? 0 : null });
 /** Cada forma de estudiar guarda su propia posición y sus propias respuestas. */
@@ -53,13 +57,14 @@ const paginasDe = (modo: Modo, vista: Vista = "lectura"): Pagina[] => {
   const suyas =
     modo === TODO[n] ? RECORRIDO.filter((p) => PARCIALES[n].includes(p.unidad)) : RECORRIDO.filter((p) => `u${p.unidad}` === modo);
   if (vista === "lectura") return suyas;
-  // En el 2do parcial, el modo "parcial" es el simulacro
   const filtro =
     vista === "importantes"
       ? (q: Pregunta) => !!q.importante
       : vista === "parcial"
-        ? (q: Pregunta) => (n === 2 ? !!q.simulacro : !!q.parcial)
-        : null;
+        ? (q: Pregunta) => !!q.parcial
+        : vista === "simulacro"
+          ? (q: Pregunta) => !!q.simulacro
+          : null;
   const paginas = filtro ? suyas.map((p) => ({ ...p, preguntas: p.preguntas.filter(filtro) })) : suyas;
   return paginas.filter((p) => p.preguntas.length > 0);
 };
@@ -121,7 +126,7 @@ export default function Quiz() {
   const solo = vista !== "lectura";
   const [paso, setPaso] = useState<Paso>(inicioDe(false));
   // Cada forma de estudiar guarda sus respuestas y sus salteos por separado
-  const vacio = { lectura: {}, preguntas: {}, importantes: {}, parcial: {} };
+  const vacio = { lectura: {}, preguntas: {}, importantes: {}, parcial: {}, simulacro: {} };
   const [respuestasPor, setRespuestasPor] = useState<Record<Grupo, Respuestas>>(vacio);
   const [salteadasPor, setSalteadasPor] = useState<Record<Grupo, Salteadas>>(vacio);
   const [posiciones, setPosiciones] = useState<Record<string, Paso>>({});
@@ -161,10 +166,22 @@ export default function Quiz() {
   useEffect(() => {
     try {
       const g = JSON.parse(localStorage.getItem(GUARDADO) ?? "null");
-      if (g?.respuestasPor) setRespuestasPor({ ...vacio, ...g.respuestasPor });
+      // Antes el simulacro del 2do parcial se guardaba como vista "parcial": se pasa a "simulacro"
+      const viejo = !g?.respuestasPor?.simulacro;
+      const migrar = <T,>(por: Record<string, T> | undefined) =>
+        por && viejo ? { ...por, simulacro: por.parcial } : por;
+      if (g?.respuestasPor) setRespuestasPor({ ...vacio, ...migrar(g.respuestasPor) });
       else if (g?.respuestas) setRespuestasPor({ ...vacio, lectura: g.respuestas });
-      if (g?.salteadasPor) setSalteadasPor({ ...vacio, ...g.salteadasPor });
-      if (g?.posiciones) setPosiciones(g.posiciones);
+      if (g?.salteadasPor) setSalteadasPor({ ...vacio, ...migrar(g.salteadasPor) });
+      if (g?.posiciones) {
+        const pos: Record<string, Paso> = { ...g.posiciones };
+        if (viejo)
+          for (const m of [TODO[2], ...MODOS[2].map((x) => x.modo)]) {
+            if (pos[`${m}-parcial`]) pos[`${m}-simulacro`] = pos[`${m}-parcial`];
+            delete pos[`${m}-parcial`];
+          }
+        setPosiciones(pos);
+      }
       if (g?.parcial === 1 || g?.parcial === 2) setParcial(g.parcial);
     } catch {
       /* sin avance guardado */
@@ -379,7 +396,8 @@ export default function Quiz() {
   const esUltimaPagina = paso.pagina + 1 >= paginas.length;
   /** En el 2do parcial todavía no hay temas marcados como importantes: se oculta esa opción. */
   const hayImportantes = paginasDe(TODO[parcial], "importantes").length > 0;
-  const practicaVista: Vista = practica === "importantes" && !hayImportantes ? "preguntas" : practica;
+  const practicaVista: Vista =
+    (practica === "importantes" && !hayImportantes) || (practica === "simulacro" && parcial === 1) ? "preguntas" : practica;
   const textoSiguiente = (quedanPreguntas: boolean) =>
     quedanPreguntas ? "Siguiente pregunta →" : esUltimaPagina ? "Ver resultado →" : "Siguiente página →";
 
@@ -425,7 +443,7 @@ export default function Quiz() {
         )}
         {actual?.parcial && (
           <span className="rounded bg-[var(--color-accent)] px-2 py-0.5 text-[10px] font-bold text-white [text-shadow:none] sm:text-xs">
-            Parcial {actual.parcial}
+            Parcial {añosDe(actual)}
           </span>
         )}
         {actual?.importante && !actual.parcial && (
@@ -438,10 +456,10 @@ export default function Quiz() {
             {vista === "importantes"
               ? "Solo importantes"
               : vista === "parcial"
-                ? parcialDe(modo) === 2
+                ? `Solo ${REALES[parcialDe(modo)].toLowerCase()}`
+                : vista === "simulacro"
                   ? "Solo simulacro"
-                  : "Solo parcial 2025"
-                : "Solo preguntas"}
+                  : "Solo preguntas"}
           </span>
         )}
       </div>
@@ -541,12 +559,13 @@ export default function Quiz() {
                   <span className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-white">
                     Practicar sin diapositivas
                   </span>
-                  <div className={`mt-2 grid ${hayImportantes ? "grid-cols-3" : "grid-cols-2"} gap-1 rounded-full bg-white/15 p-1`}>
+                  <div className="mt-2 grid auto-cols-fr grid-flow-col gap-1 rounded-full bg-white/15 p-1">
                     {(
                       [
                         { v: "preguntas", t: "Todas" },
                         ...(hayImportantes ? [{ v: "importantes", t: "★ Importantes" }] : []),
-                        { v: "parcial", t: parcial === 1 ? "Parcial 2025" : "Simulacro" },
+                        { v: "parcial", t: REALES[parcial] },
+                        ...(parcial === 2 ? [{ v: "simulacro", t: "Simulacro" }] : []),
                       ] as { v: Vista; t: string }[]
                     ).map(({ v, t }) => (
                       <button
@@ -940,7 +959,7 @@ export default function Quiz() {
                     {erradas.map((p) => (
                       <li key={p.id} className="border-l-4 border-[var(--color-accent)] pl-5">
                         <span className="block font-mono text-xs uppercase tracking-[0.12em] text-[var(--color-accent)]">
-                          {p.parcial ? `Parcial ${p.parcial} · ` : p.simulacro ? "Simulacro · " : p.importante ? "★ " : ""}
+                          {p.parcial ? `Parcial ${añosDe(p)} · ` : p.simulacro ? "Simulacro · " : p.importante ? "★ " : ""}
                           {REFERENCIA[p.id]}
                         </span>
                         <span className="mt-1 block text-lg font-bold leading-snug">{p.enunciado}</span>
