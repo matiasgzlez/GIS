@@ -177,7 +177,7 @@ export default function Quiz() {
         const pos: Record<string, Paso> = { ...g.posiciones };
         if (viejo)
           for (const m of [TODO[2], ...MODOS[2].map((x) => x.modo)]) {
-            if (pos[`${m}-parcial`]) pos[`${m}-simulacro`] = pos[`${m}-parcial`];
+            // El simulacro cambió de composición: su posición vieja ya no sirve, se arranca de cero
             delete pos[`${m}-parcial`];
           }
         setPosiciones(pos);
@@ -505,27 +505,50 @@ export default function Quiz() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.35, ease: EASE }}
-            className={`${ANCHO} flex min-h-[100svh] flex-col justify-center py-12`}
+            className={`${ANCHO} relative flex min-h-[100svh] flex-col justify-center pb-12 pt-28 sm:pt-32`}
           >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <span className="sombra font-mono text-xs uppercase tracking-[0.24em] sm:text-sm">
-                UTN FRRe · Sistemas de Información Geográfica
-              </span>
-              {/* Qué parcial se estudia: cambia las unidades del menú */}
-              <div className="flex gap-1 rounded-full bg-black/40 p-1 backdrop-blur-sm">
+            {/* Qué parcial se estudia: un switch arriba de todo, que cambia las unidades del menú */}
+            <div className="absolute inset-x-0 top-6 flex justify-center px-4 sm:top-8">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={parcial === 2}
+                aria-label="Parcial que se estudia: apagado el 1er parcial, encendido el 2do"
+                onClick={() => setParcial(parcial === 1 ? 2 : 1)}
+                onKeyDown={(e) => {
+                  if (e.key === "ArrowLeft") setParcial(1);
+                  if (e.key === "ArrowRight") setParcial(2);
+                }}
+                className="relative grid w-full max-w-[640px] cursor-pointer grid-cols-2 rounded-full bg-white/15 p-1.5 shadow-[0_10px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/40 backdrop-blur-md outline-none transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white"
+              >
+                <motion.span
+                  aria-hidden
+                  className="absolute inset-y-1.5 left-1.5 w-[calc(50%-6px)] rounded-full bg-[var(--color-accent)] shadow-[0_4px_16px_rgba(206,27,27,0.55)]"
+                  initial={false}
+                  animate={{ x: parcial === 1 ? "0%" : "100%" }}
+                  transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                />
                 {([1, 2] as NParcial[]).map((n) => (
-                  <button
+                  <span
                     key={n}
-                    onClick={() => setParcial(n)}
-                    className={`rounded-full px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-[0.12em] transition-colors ${
-                      parcial === n ? "bg-white text-[var(--color-text-primary)]" : "text-white hover:bg-white/15"
+                    className={`relative z-10 flex flex-col items-center px-3 py-2.5 transition-colors duration-200 sm:py-3 ${
+                      parcial === n ? "text-white" : "text-white/70"
                     }`}
                   >
-                    {n === 1 ? "1er parcial · U1-U4" : "2do parcial · U5, U7 y U8"}
-                  </button>
+                    <span className="font-black uppercase leading-none tracking-[-0.01em] text-[clamp(15px,2.4vw,22px)]">
+                      {n === 1 ? "1er parcial" : "2do parcial"}
+                    </span>
+                    <span className="mt-1 font-mono text-[10px] font-bold uppercase tracking-[0.14em] opacity-80 sm:text-[11px]">
+                      {n === 1 ? "U1 – U4" : "U5, U7 y U8"}
+                    </span>
+                  </span>
                 ))}
-              </div>
+              </button>
             </div>
+
+            <span className="sombra font-mono text-xs uppercase tracking-[0.24em] sm:text-sm">
+              UTN FRRe · Sistemas de Información Geográfica
+            </span>
 
             <div className="mt-4 grid gap-10 lg:grid-cols-12 lg:items-end lg:gap-16">
               <h1 className="trazo font-black uppercase leading-[0.88] tracking-[-0.04em] text-[clamp(52px,8.5vw,150px)] lg:col-span-7">
